@@ -22,6 +22,7 @@ from app.agents.documentation import DocumentationAgent
 from app.agents.testing import TestingAgent
 from app.agents.repository_chat import RepositoryChatAgent
 from app.agents.project_health import ProjectHealthAgent
+from app.agents.security_agent import SecurityAgent
 from app.config.settings import settings
 
 router = APIRouter(prefix="/repos", tags=["repositories"])
@@ -47,7 +48,8 @@ orchestrator.register_agent("code_review", CodeReviewAgent(llm_service))
 orchestrator.register_agent("documentation", DocumentationAgent(llm_service))
 orchestrator.register_agent("testing", TestingAgent(llm_service))
 orchestrator.register_agent("repository_chat", RepositoryChatAgent(llm_service, vector_service))
-orchestrator.register_agent("project_health", ProjectHealthAgent())
+orchestrator.register_agent("project_health", ProjectHealthAgent(database_service))
+orchestrator.register_agent("security_agent", SecurityAgent(database_service))
 
 health_service = HealthService()
 
@@ -141,3 +143,37 @@ def chat_repository(repo_id: str, payload: ChatRequest):
 def repository_health(repo_id: str):
     response = orchestrator.route("project_health", {"repository_id": repo_id})
     return {"status": "success", "data": response}
+
+@router.post("/{repo_id}/security")
+def security_audit(repo_id: str):
+    response = orchestrator.route("security_agent", {"repository_id": repo_id})
+    return {"status": "success", "data": response}
+
+@router.get("/{repo_id}/status")
+def get_repository_status(repo_id: str):
+    repository = database_service.get_repository(int(repo_id))
+    if not repository:
+        raise HTTPException(status_code=404, detail="Repository not found")
+    return {
+        "status": "success",
+        "data": {
+            "repository_id": repository.id,
+            "status": repository.status,
+        }
+    }
+
+@router.get("/{repo_id}/files")
+def get_repository_files(repo_id: str):
+    files = database_service.get_repository_files(int(repo_id))
+    return {
+        "status": "success",
+        "data": [
+            {
+                "id": f.id,
+                "file_path": f.file_path,
+                "language": f.language,
+                "file_type": f.file_type,
+            }
+            for f in files
+        ]
+    }
