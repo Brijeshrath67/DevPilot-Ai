@@ -9,6 +9,18 @@ os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DB_PATH.as_posix()}"
 os.environ["DATA_ROOT"] = str(TEST_DATA_ROOT)
 os.environ["AI_API_KEY"] = "mock_key"
 
+# Keep tests hermetic and offline: blank every routed provider key so agents
+# fall back to mock_key -> local rule-based logic instead of hitting live APIs.
+for _provider_key in [
+    "GROQ_API_KEY",
+    "GEMINI_API_KEY",
+    "MISTRAL_API_KEY",
+    "NVIDIA_API_KEY",
+    "OPENROUTER_API_KEY",
+    "CEREBRAS_API_KEY",
+]:
+    os.environ[_provider_key] = ""
+
 for stale in [TEST_DB_PATH, TEST_DATA_ROOT]:
     if stale.exists():
         if stale.is_dir():

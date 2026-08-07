@@ -26,7 +26,7 @@ DEFAULT_MODELS = {
     "mistral": "mistral-large-latest",
     "nvidia": "meta/llama-3.3-70b-instruct",
     "openrouter": "openai/gpt-4o-mini",
-    "cerebras": "llama3.1-8b",
+    "cerebras": "gpt-oss-120b",
 }
 
 DEFAULT_BASE_URLS = {

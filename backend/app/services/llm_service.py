@@ -28,7 +28,8 @@ class LLMService:
                 "max_tokens": max_tokens,
             }
             headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
-            response = httpx.post(self.api_url, json=payload, headers=headers, timeout=120.0)
+            url = f"{self.api_url.rstrip('/')}/chat/completions"
+            response = httpx.post(url, json=payload, headers=headers, timeout=120.0)
             response.raise_for_status()
             data = response.json()
             return data["choices"][0]["message"]["content"].strip()

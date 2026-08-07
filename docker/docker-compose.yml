@@ -6,9 +6,17 @@ services:
     container_name: devpilot-backend
     environment:
       DATABASE_URL: ${DATABASE_URL:-sqlite:////app/data/devpilot.db}
+      MONGODB_URI: ${MONGODB_URI:-}
+      MONGODB_DB_NAME: ${MONGODB_DB_NAME:-devpilot_ai}
       AI_API_KEY: ${AI_API_KEY:-mock_key}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-devpilot_secret_key_12345}
       DATA_ROOT: /app/data
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      CEREBRAS_API_KEY: ${CEREBRAS_API_KEY:-}
     volumes:
       - devpilot_data:/app/data
     ports:

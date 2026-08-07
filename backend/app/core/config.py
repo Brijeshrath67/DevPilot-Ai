@@ -45,7 +45,7 @@ class Settings(BaseSettings):
 
     cerebras_api_key: str = ""
     cerebras_base_url: str = "https://api.cerebras.ai/v1"
-    cerebras_model: str = "llama3.1-8b"
+    cerebras_model: str = "gpt-oss-120b"
 
     # Maps each agent to the provider it should use.
     agent_llm_providers: dict[str, str] = {
