@@ -53,6 +53,27 @@ orchestrator.register_agent("security_agent", SecurityAgent(database_service))
 
 health_service = HealthService()
 
+@router.get("")
+def list_repositories():
+    from app.db.session import SessionLocal
+    from app.models.repository import Repository
+    with SessionLocal() as session:
+        repos = session.query(Repository).order_by(Repository.id.desc()).all()
+        return {
+            "status": "success",
+            "data": [
+                {
+                    "repository_id": r.id,
+                    "name": r.name,
+                    "source_url": r.source_url,
+                    "status": r.status,
+                    "summary": r.summary,
+                    "created_at": r.created_at.isoformat() if r.created_at else None
+                }
+                for r in repos
+            ]
+        }
+
 @router.post("/upload")
 async def upload_repository(
     source_type: str = Form(...),
