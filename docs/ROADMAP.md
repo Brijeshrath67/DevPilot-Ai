@@ -19,7 +19,7 @@ Deliver a production-quality AI developer productivity platform that fulfills th
 - Implement repository upload / GitHub ingest API
 - Create parser service for folder structure, languages, dependencies
 - Build repository analyzer agent and summary reports
-- Persist repo metadata and file index in PostgreSQL
+- Persist repo metadata and file index in MongoDB Atlas (SQLite fallback)
 
 ## Phase 3: Health Dashboard
 - Define health metric formulas and storage model
@@ -35,7 +35,7 @@ Deliver a production-quality AI developer productivity platform that fulfills th
 
 ## Phase 5: Code Review and Repository Chat
 - Implement code review agent with quality/security/performance feedback
-- Build RAG pipeline using embeddings and ChromaDB
+- Build RAG pipeline using embeddings and Pinecone (local vector index fallback)
 - Implement repository chat API with provenance-aware answers
 - Add frontend chat experience and code lookup
 

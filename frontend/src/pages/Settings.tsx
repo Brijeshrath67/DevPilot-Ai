@@ -82,7 +82,8 @@ export default function Settings() {
                   ["Version", "v0.1.0"],
                   ["Frontend", "React + Vite + TailwindCSS"],
                   ["Backend", "FastAPI + Python 3.12"],
-                  ["Database", "SQLite (dev) / PostgreSQL (prod)"],
+                  ["Database", "MongoDB Atlas (SQLite fallback)"],
+                  ["Vector Store", "Pinecone (local fallback)"],
                   ["AI Engine", "Gemini / OpenAI compatible"],
                   ["License", "MIT"],
                 ].map(([label, value]) => (

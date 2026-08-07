@@ -17,8 +17,9 @@ DevPilot AI is a modular, production-grade SaaS platform that helps engineering 
 
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui + React Router + Axios + React Query
 - **Backend**: FastAPI + Python + SQLAlchemy + Pydantic V2
-- **AI Core**: Specialized agents + shared skills + vector query service (local JSON persistence, offline RAG)
-- **Database**: SQLite (development) / PostgreSQL (production)
+- **AI Core**: 6 specialized agents, each backed by a distinct LLM provider (Groq, Gemini, Mistral, NVIDIA, OpenRouter, Cerebras) + shared skills + vector query service (Pinecone, with a local JSON fallback for offline RAG)
+- **Database**: MongoDB Atlas (primary, when `MONGODB_URI` is configured) / SQLite (local fallback)
+- **Vector Store**: Pinecone (when `VECTOR_STORE=pinecone`) / local JSON index (fallback)
 - **Auth**: JWT (GitHub OAuth optional)
 - **CI/CD**: GitHub Actions (lint, unit, e2e, deploy)
 - **Deployment**: Docker Compose
@@ -87,16 +88,39 @@ python scripts/seed.py
 
 Seeds the bundled `examples/sample_repo` into the local database and runs the analysis pipeline so the dashboard has data to show.
 
-### 4. Configure AI (optional)
+### 4. Configure AI, database, and vector store (optional)
 
 `backend/.env`:
 
 ```dotenv
+# LLM fallback (used when a provider-specific key is missing)
 AI_API_KEY=mock_key
 AI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+
+# One provider per agent — fill in whichever keys you hold
+GROQ_API_KEY=            # Repository Analyzer
+GEMINI_API_KEY=          # Code Review
+MISTRAL_API_KEY=         # Documentation
+NVIDIA_API_KEY=          # Testing
+OPENROUTER_API_KEY=      # Repository Chat
+CEREBRAS_API_KEY=        # Project Health
+
+# MongoDB Atlas (leave MONGODB_URI empty to use the SQLite fallback)
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DB_NAME=devpilot_ai
+
+# Pinecone (leave VECTOR_STORE=local to use the bundled JSON index)
+VECTOR_STORE=pinecone
+PINECONE_API_KEY=your_pinecone_api_key
+PINECONE_INDEX_NAME=devpilot-vectors
 ```
 
-A `mock_key` keeps the app fully functional offline; set a real key to get real LLM-generated summaries, reviews, docs, and tests.
+Every provider defaults to an OpenAI-compatible endpoint, so a single `mock_key`
+keeps the app fully functional offline (each agent gracefully falls back to
+rule-based logic). Add any real provider key to activate LLM generation for
+that agent. The database and vector store automatically fall back to local
+storage (SQLite + JSON index) when Atlas/Pinecone credentials are missing, so
+the app always boots.
 
 ## Testing
 

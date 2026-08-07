@@ -5,13 +5,13 @@ This document describes the stack, data model, and high-level design of the **De
 ## 1. Stack Overview
 
 - **Frontend**: React + Vite + TailwindCSS + Axios + React Query
-- **Backend**: FastAPI + Python + SQLAlchemy + SQLite (Development) / PostgreSQL (Production)
+- **Backend**: FastAPI + Python + SQLAlchemy + SQLite (fallback) / MongoDB Atlas (production)
 - **AI Core**: Specialized AI Agents + Shared Skills + Vector Query Service (Local JSON persistence)
 
 ## 2. High-Level Design
 
 ```
-User -> React Frontend -> FastAPI Backend -> Agent Orchestrator -> Specialized Agents -> Skills & Services -> SQLite/PostgreSQL
+User -> React Frontend -> FastAPI Backend -> Agent Orchestrator -> Specialized Agents -> Skills & Services -> MongoDB Atlas / SQLite + Pinecone / local vector index
 ```
 
 ### Specialized Agents

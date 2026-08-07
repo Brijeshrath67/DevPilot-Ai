@@ -23,7 +23,7 @@ The platform is intentionally not a generic chat interface. It is a workflow-cen
 
 ## 3. High-Level System Architecture
 
-User → React Frontend → FastAPI Backend → AI Orchestrator → Specialized AI Agents → Shared Skills/Services → PostgreSQL + ChromaDB → Response
+User → React Frontend → FastAPI Backend → AI Orchestrator → Specialized AI Agents → Shared Skills/Services → MongoDB Atlas + Pinecone → Response
 
 ### 3.1 Frontend
 
@@ -43,16 +43,20 @@ User → React Frontend → FastAPI Backend → AI Orchestrator → Specialized 
 
 ### 3.3 AI Layer
 
-- Six specialized agents:
-  1. Repository Analyzer Agent
-  2. Code Review Agent
-  3. Documentation Agent
-  4. Testing Agent
-  5. Repository Chat Agent
-  6. Project Health Agent
+- Seven specialized agents:
+  1. Repository Analyzer Agent → Groq
+  2. Code Review Agent → Gemini
+  3. Documentation Agent → Mistral
+  4. Testing Agent → NVIDIA
+  5. Repository Chat Agent → OpenRouter
+  6. Project Health Agent → Cerebras
+  7. Security Audit Agent (rule-based)
 - One orchestrator controls routing and request validation
 - Agents never communicate directly with each other
 - Shared skills provide common logic and data access
+- A provider registry (`backend/app/core/providers.py`) binds each agent to a
+  distinct OpenAI-compatible LLM endpoint; missing keys degrade gracefully to a
+  single fallback key (`AI_API_KEY`)
 
 ### 3.4 Shared Skills and Services
 
@@ -86,9 +90,7 @@ frontend/
     pages/
     routes/
     lib/
-    styles/
     hooks/
-    assets/
 backend/
   app/
     api/
@@ -96,11 +98,10 @@ backend/
     agents/
     skills/
     services/
-    db/
-    models/
+    database/
     schemas/
     core/
-    config/
+    prompts/
     utils/
     main.py
   tests/
@@ -138,11 +139,11 @@ README.md
 - `agents/` - specialized AI agent implementations
 - `skills/` - reusable logic for shared domain capabilities
 - `services/` - infrastructure and external integration logic
-- `db/` - migrations, session management, repository pattern
-- `models/` - SQLAlchemy models
+- `database/` - MongoDB Atlas backend + SQLAlchemy fallback, session management, repository pattern, models
 - `schemas/` - Pydantic request/response schemas
-- `core/` - app startup, middleware, exception handling
-- `config/` - settings and environment configuration
+- `core/` - app startup, settings/config, logging, exception handling, security
+- `prompts/` - reusable prompt templates for agents
+- `utils/` - shared helpers
 
 ### 5.3 Agent Responsibilities
 
@@ -173,8 +174,8 @@ README.md
 - `GitHub Service` - repo ingestion, repo metadata, optional OAuth
 - `Parser Service` - repository file parsing, AST extraction, dependency graph
 - `Embedding Service` - text embedding generation and storage
-- `Vector Service` - ChromaDB operations for RAG retrieval
-- `LLM Service` - Gemini API integration and prompt orchestration
+- `Vector Service` - Pinecone operations for RAG retrieval (local JSON index fallback)
+- `LLM Service` - OpenAI-compatible chat client driving Groq, Gemini, Mistral, NVIDIA, OpenRouter, and Cerebras endpoints
 - `Database Service` - persistence layer and repository pattern
 - `Documentation Service` - generation, templating, formatting
 - `Testing Service` - test case scaffolding and coverage analysis
@@ -284,7 +285,7 @@ README.md
 4. Orchestrator selects matching agent for the task
 5. Agent calls shared skills/services as needed
 6. Shared services access database, parser, embeddings, and external AI services
-7. ChromaDB retrieves context for chat/RAG tasks
+7. Pinecone retrieves context for chat/RAG tasks (local vector index when offline)
 8. Agent returns structured response to orchestrator
 9. Backend sends normalized response to frontend
 
@@ -340,7 +341,7 @@ README.md
 ## 12. Scalability Plan
 
 - Stateless backend API layer with database-backed persistence
-- Separate vector store (ChromaDB) for retrieval scaling
+- Separate vector store (Pinecone) for retrieval scaling
 - Async task execution for expensive repo analysis and embedding generation
 - Modular agents that can be extended or scaled horizontally
 - Clear separation of frontend and backend deployment targets
