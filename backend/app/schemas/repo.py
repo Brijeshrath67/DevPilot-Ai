@@ -1,28 +1,34 @@
 from pydantic import BaseModel
-from typing import List, Optional
+
 
 class UploadRepositoryRequest(BaseModel):
     source_type: str
-    source_value: Optional[str] = None
+    source_value: str | None = None
     repository_name: str | None = None
+
 
 class UploadRepositoryFileRequest(BaseModel):
     repository_name: str | None = None
 
+
 class AnalyzeRepositoryRequest(BaseModel):
     analysis_scope: str = "full"
 
+
 class CodeReviewRequest(BaseModel):
-    files: List[str] | None = None
+    files: list[str] | None = None
     review_scope: str = "full"
 
+
 class DocumentationRequest(BaseModel):
-    doc_types: List[str]
-    target_files: List[str] | None = None
+    doc_types: list[str]
+    target_files: list[str] | None = None
+
 
 class TestsRequest(BaseModel):
-    test_types: List[str]
-    target_files: List[str] | None = None
+    test_types: list[str]
+    target_files: list[str] | None = None
+
 
 class ChatRequest(BaseModel):
     question: str

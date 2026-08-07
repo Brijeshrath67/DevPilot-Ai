@@ -2,6 +2,7 @@ from app.agents.base_agent import BaseAgent
 from app.services.llm_service import LLMService
 from app.services.vector_service import VectorService
 
+
 class RepositoryChatAgent(BaseAgent):
     def __init__(self, llm_service: LLMService, vector_service: VectorService):
         self.llm_service = llm_service

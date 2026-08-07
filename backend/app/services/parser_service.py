@@ -3,7 +3,7 @@ import os
 import re
 import tomllib
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from app.db.session import SessionLocal
 from app.models.repository import Repository
@@ -31,6 +31,7 @@ FRAMEWORK_KEYWORDS = {
     "flask": "Flask",
     "express": "Express",
 }
+
 
 class ParserService:
     def analyze_repository(self, repository_id: str, scope: str = "full") -> dict:
@@ -64,7 +65,7 @@ class ParserService:
                 "dependencies": parsed["dependencies"],
             }
 
-    def _parse_repository(self, root_path: Path) -> Dict[str, Any]:
+    def _parse_repository(self, root_path: Path) -> dict[str, Any]:
         languages = set()
         frameworks = set()
         dependencies = set()
@@ -98,7 +99,7 @@ class ParserService:
                     for token, framework in FRAMEWORK_KEYWORDS.items():
                         if token in package.lower():
                             frameworks.add(framework)
-        except Exception:
+        except Exception:  # noqa: S110  # skip malformed manifests
             pass
 
     def _collect_python_dependencies(self, path: Path, frameworks: set, dependencies: set) -> None:
@@ -107,12 +108,15 @@ class ParserService:
             if path.suffix == ".toml":
                 data = tomllib.loads(text)
                 for section in ["project", "tool.poetry", "tool"]:
-                    if section in data:
-                        deps = data.get(section, {}).get("dependencies", {})
-                        if isinstance(deps, dict):
-                            for package in deps:
-                                dependencies.add(package)
-                                self._map_python_framework(package, frameworks)
+                    deps = data.get(section, {}).get("dependencies", {})
+                    if isinstance(deps, dict):
+                        for package in deps:
+                            dependencies.add(package)
+                            self._map_python_framework(package, frameworks)
+                    elif isinstance(deps, list):
+                        for package in deps:
+                            dependencies.add(package)
+                            self._map_python_framework(package, frameworks)
             else:
                 for line in text.splitlines():
                     cleaned = line.strip()
@@ -121,7 +125,7 @@ class ParserService:
                         if match:
                             dependencies.add(match)
                             self._map_python_framework(match, frameworks)
-        except Exception:
+        except Exception:  # noqa: S110  # skip malformed manifests
             pass
 
     def _map_python_framework(self, package_name: str, frameworks: set) -> None:
@@ -133,13 +137,15 @@ class ParserService:
         elif "flask" in lower:
             frameworks.add("Flask")
 
-    def _summarize_project(self, name: str, parsed: Dict[str, Any]) -> str:
+    def _summarize_project(self, name: str, parsed: dict[str, Any]) -> str:
+        frameworks = ", ".join(parsed["frameworks"]) or "none"
         return (
-            f"{name} contains {parsed['file_count']} source files across {len(parsed['languages'])} languages. "
-            f"Detected frameworks: {', '.join(parsed['frameworks']) or 'none'} and {len(parsed['dependencies'])} dependencies."
+            f"{name} contains {parsed['file_count']} source files across "
+            f"{len(parsed['languages'])} languages. Detected frameworks: {frameworks} and "
+            f"{len(parsed['dependencies'])} dependencies."
         )
 
-    def _summarize_architecture(self, parsed: Dict[str, Any]) -> str:
+    def _summarize_architecture(self, parsed: dict[str, Any]) -> str:
         if parsed["frameworks"]:
             return f"Architecture relies on {', '.join(parsed['frameworks'])}." + "".join(
                 [f" {lang} files are present." for lang in parsed["languages"]]

@@ -1,5 +1,5 @@
-from typing import Any
 from app.services.llm_service import LLMService
+
 
 class LLMSkill:
     def __init__(self, api_key: str, api_url: str):

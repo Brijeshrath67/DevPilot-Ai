@@ -1,6 +1,8 @@
-import httpx
-from typing import Any
 import json
+from typing import Any
+
+import httpx
+
 
 class LLMService:
     def __init__(self, api_key: str, api_url: str):
@@ -11,60 +13,59 @@ class LLMService:
         # If API key is set and valid (not mock), perform the actual HTTP request
         if self.api_key and self.api_key != "mock_key":
             try:
-                headers = {
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json"
-                }
+                headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
                 payload = {
                     "model": kwargs.get("model", "gpt-3.5-turbo"),
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": kwargs.get("temperature", 0.2),
-                    "max_tokens": kwargs.get("max_tokens", 1024)
+                    "max_tokens": kwargs.get("max_tokens", 1024),
                 }
                 response = httpx.post(f"{self.api_url}/chat/completions", json=payload, headers=headers, timeout=30.0)
                 response.raise_for_status()
                 return response.json()["choices"][0]["message"]["content"]
-            except Exception as exc:
+            except Exception:
                 # If API call fails, fall through to the mock response generator to prevent application crash
                 pass
 
         # Smart prompt-aware offline mock response generator
         prompt_lower = prompt.lower()
-        
+
         # 1. Check for Code Review requests
         if "review" in prompt_lower or "issues" in prompt_lower:
-            return json.dumps({
-                "issues": [
-                    {
-                        "severity": "CRITICAL",
-                        "file": "backend/app/core/security.py",
-                        "line": 42,
-                        "vulnerability": "Hardcoded Encryption Key",
-                        "description": "The secret signing key is hardcoded directly into the security service constructor. This compromises tokens if the source code is leaked.",
-                        "recommendation": "Import the key from system environment variables using `settings.jwt_secret_key`."
-                    },
-                    {
-                        "severity": "HIGH",
-                        "file": "frontend/src/lib/api.ts",
-                        "line": 15,
-                        "vulnerability": "Missing SSL/TLS Verification",
-                        "description": "Axios client is configured to allow self-signed certificates in non-development environments, exposing users to MITM attacks.",
-                        "recommendation": "Restrict custom agent overrides only to local docker development environments."
-                    },
-                    {
-                        "severity": "MEDIUM",
-                        "file": "backend/app/api/v1/repos.py",
-                        "line": 88,
-                        "vulnerability": "Lack of Input Validation",
-                        "description": "Repository path values are ingested from the database without verifying that path traversal structures (like '../') are fully escaped.",
-                        "recommendation": "Use Python's `Path.resolve()` to ensure paths are always children of the configured `DATA_ROOT` directory."
-                    }
-                ],
-                "recommendations": [
-                    "Migrate all secret keys out of code files and into .env configs.",
-                    "Integrate automated pre-commit linting hooks to clean up syntax warnings before pull requests."
-                ]
-            })
+            return json.dumps(
+                {
+                    "issues": [
+                        {
+                            "severity": "CRITICAL",
+                            "file": "backend/app/core/security.py",
+                            "line": 42,
+                            "vulnerability": "Hardcoded Encryption Key",
+                            "description": "The secret signing key is hardcoded directly into the security service constructor. This compromises tokens if the source code is leaked.",
+                            "recommendation": "Import the key from system environment variables using `settings.jwt_secret_key`.",
+                        },
+                        {
+                            "severity": "HIGH",
+                            "file": "frontend/src/lib/api.ts",
+                            "line": 15,
+                            "vulnerability": "Missing SSL/TLS Verification",
+                            "description": "Axios client is configured to allow self-signed certificates in non-development environments, exposing users to MITM attacks.",
+                            "recommendation": "Restrict custom agent overrides only to local docker development environments.",
+                        },
+                        {
+                            "severity": "MEDIUM",
+                            "file": "backend/app/api/v1/repos.py",
+                            "line": 88,
+                            "vulnerability": "Lack of Input Validation",
+                            "description": "Repository path values are ingested from the database without verifying that path traversal structures (like '../') are fully escaped.",
+                            "recommendation": "Use Python's `Path.resolve()` to ensure paths are always children of the configured `DATA_ROOT` directory.",
+                        },
+                    ],
+                    "recommendations": [
+                        "Migrate all secret keys out of code files and into .env configs.",
+                        "Integrate automated pre-commit linting hooks to clean up syntax warnings before pull requests.",
+                    ],
+                }
+            )
 
         # 2. Check for Documentation requests
         elif "documentation" in prompt_lower or "readme" in prompt_lower or "api_docs" in prompt_lower:
@@ -119,11 +120,11 @@ class LLMService:
                 "from app.main import app\n\n"
                 "client = TestClient(app)\n\n"
                 "def test_read_health():\n"
-                "    response = client.get(\"/health\")\n"
+                '    response = client.get("/health")\n'
                 "    assert response.status_code == 200\n"
-                "    assert response.json() == {\"status\": \"ok\"}\n\n"
+                '    assert response.json() == {"status": "ok"}\n\n'
                 "def test_invalid_repo_get():\n"
-                "    response = client.get(\"/api/v1/repos/9999\")\n"
+                '    response = client.get("/api/v1/repos/9999")\n'
                 "    assert response.status_code == 404\n"
                 "```"
             )

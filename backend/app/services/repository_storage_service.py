@@ -1,16 +1,15 @@
-import os
 import re
 import shutil
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import Optional
 
 import httpx
 from fastapi import UploadFile
 
 DATA_ROOT = Path(__file__).resolve().parents[2] / "data" / "repositories"
 DATA_ROOT.mkdir(parents=True, exist_ok=True)
+
 
 class RepositoryStorageService:
     def __init__(self) -> None:
@@ -45,7 +44,7 @@ class RepositoryStorageService:
         tmp_path.unlink(missing_ok=True)
         return extracted_path
 
-    def _parse_github_url(self, url: str) -> Optional[tuple[str, str, str]]:
+    def _parse_github_url(self, url: str) -> tuple[str, str, str] | None:
         pattern = r"github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)(?:/tree/(?P<branch>[^/]+))?"
         match = re.search(pattern, url)
         if not match:

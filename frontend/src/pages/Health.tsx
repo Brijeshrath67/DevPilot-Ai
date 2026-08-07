@@ -12,7 +12,7 @@ const METRICS = [
   { key: "complexity_score", label: "Complexity", icon: "🔀", color: "from-amber-500 to-orange-600", trackColor: "#f59e0b" },
 ];
 
-function ScoreDial({ value, color, trackColor }: { value: number; color: string; trackColor: string }) {
+function ScoreDial({ value, color: _color, trackColor }: { value: number; color: string; trackColor: string }) {
   const r = 40;
   const circumference = 2 * Math.PI * r;
   const dashOffset = circumference - (value / 100) * circumference;

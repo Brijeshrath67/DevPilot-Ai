@@ -1,7 +1,9 @@
-from app.agents.base_agent import BaseAgent
-from app.skills.reporting_skill import ReportingSkill
-from app.services.database_service import DatabaseService
 import os
+
+from app.agents.base_agent import BaseAgent
+from app.services.database_service import DatabaseService
+from app.skills.reporting_skill import ReportingSkill
+
 
 class ProjectHealthAgent(BaseAgent):
     def __init__(self, database_service: DatabaseService) -> None:
@@ -34,7 +36,7 @@ class ProjectHealthAgent(BaseAgent):
                     has_contrib = True
                 elif "architecture" in lower_entry or "docs" in lower_entry:
                     has_arch = True
-        
+
         doc_score = 40.0
         if has_readme:
             doc_score += 30.0
@@ -49,7 +51,7 @@ class ProjectHealthAgent(BaseAgent):
             path_lower = f.file_path.lower()
             if "test" in path_lower or "spec" in path_lower:
                 test_file_count += 1
-        
+
         test_score = 30.0
         if test_file_count > 0:
             test_score = min(100.0, 40.0 + test_file_count * 15.0)
@@ -99,7 +101,7 @@ class ProjectHealthAgent(BaseAgent):
             recommendations.append("MEDIUM: Create contributing guidelines and architecture overview diagrams.")
         if maintainability_score < 70.0:
             recommendations.append("MEDIUM: Consider refactoring code structure into modular folder hierarchies.")
-        
+
         if not recommendations:
             recommendations.append("All metrics are green! The repository shows excellent code hygiene.")
 

@@ -1,10 +1,14 @@
 from typing import Any
+
 from app.db.session import SessionLocal
-from app.models.repository import Repository
 from app.models.analysis_report import AnalysisReport
+from app.models.repository import Repository
+
 
 class DatabaseService:
-    def create_repository(self, name: str, source_url: str | None = None, root_path: str | None = None, user_id: int | None = None) -> Repository:
+    def create_repository(
+        self, name: str, source_url: str | None = None, root_path: str | None = None, user_id: int | None = None
+    ) -> Repository:
         with SessionLocal() as session:
             repository = Repository(
                 name=name,
@@ -54,6 +58,7 @@ class DatabaseService:
 
     def save_repository_files(self, repository_id: int, files: list) -> None:
         from app.models.repository_file import RepositoryFile
+
         with SessionLocal() as session:
             session.query(RepositoryFile).filter(RepositoryFile.repository_id == repository_id).delete()
             for f in files:
@@ -69,16 +74,24 @@ class DatabaseService:
 
     def get_repository_files(self, repository_id: int) -> list:
         from app.models.repository_file import RepositoryFile
+
         with SessionLocal() as session:
             return session.query(RepositoryFile).filter(RepositoryFile.repository_id == repository_id).all()
 
     def get_health_metrics(self, repository_id: int):
         from app.models.health_metric import HealthMetric
+
         with SessionLocal() as session:
-            return session.query(HealthMetric).filter(HealthMetric.repository_id == repository_id).order_by(HealthMetric.updated_at.desc()).first()
+            return (
+                session.query(HealthMetric)
+                .filter(HealthMetric.repository_id == repository_id)
+                .order_by(HealthMetric.updated_at.desc())
+                .first()
+            )
 
     def save_health_metrics(self, repository_id: int, scores: dict) -> None:
         from app.models.health_metric import HealthMetric
+
         with SessionLocal() as session:
             metric = session.query(HealthMetric).filter(HealthMetric.repository_id == repository_id).first()
             if not metric:

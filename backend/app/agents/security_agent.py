@@ -1,6 +1,7 @@
 from app.agents.base_agent import BaseAgent
-from app.skills.security_skill import SecuritySkill
 from app.services.database_service import DatabaseService
+from app.skills.security_skill import SecuritySkill
+
 
 class SecurityAgent(BaseAgent):
     def __init__(self, database_service: DatabaseService) -> None:
@@ -14,11 +15,7 @@ class SecurityAgent(BaseAgent):
 
         repo = self.database_service.get_repository(int(repository_id))
         if not repo or not repo.root_path:
-            return {
-                "security_score": 100.0,
-                "issues": [],
-                "recommendations": ["No repository files found to scan."]
-            }
+            return {"security_score": 100.0, "issues": [], "recommendations": ["No repository files found to scan."]}
 
         findings = self.security_skill.scan_repository(repo.root_path)
 
@@ -27,7 +24,7 @@ class SecurityAgent(BaseAgent):
         critical_count = 0
         high_count = 0
         medium_count = 0
-        
+
         for f in findings:
             if f["severity"] == "CRITICAL":
                 score -= 25.0
@@ -38,7 +35,7 @@ class SecurityAgent(BaseAgent):
             elif f["severity"] == "MEDIUM":
                 score -= 5.0
                 medium_count += 1
-        
+
         score = max(0.0, score)
 
         # Update database health metrics with this new security score
@@ -56,16 +53,21 @@ class SecurityAgent(BaseAgent):
         # Generate custom recommendations based on scan results
         recommendations = []
         if critical_count > 0:
-            recommendations.append(f"CRITICAL: Found {critical_count} exposed credentials or secrets. Revoke them immediately and migrate to .env variables!")
+            recommendations.append(
+                f"CRITICAL: Found {critical_count} exposed credentials or secrets. Revoke them "
+                "immediately and migrate to .env variables!"
+            )
         if high_count > 0:
-            recommendations.append(f"HIGH: Found {high_count} risky query or scripting methods (e.g. potential SQL Injection). Rewrite using parameter bindings.")
+            recommendations.append(
+                f"HIGH: Found {high_count} risky query or scripting methods (e.g. potential "
+                "SQL Injection). Rewrite using parameter bindings."
+            )
         if medium_count > 0:
-            recommendations.append(f"MEDIUM: Found {medium_count} unsafe command execution modules (e.g. eval/exec). Replace with secure utility equivalents.")
+            recommendations.append(
+                f"MEDIUM: Found {medium_count} unsafe command execution modules (e.g. eval/exec). "
+                "Replace with secure utility equivalents."
+            )
         if not findings:
             recommendations.append("Excellent! No major security vulnerabilities or exposed secrets were detected.")
 
-        return {
-            "security_score": score,
-            "issues": findings,
-            "recommendations": recommendations
-        }
+        return {"security_score": score, "issues": findings, "recommendations": recommendations}

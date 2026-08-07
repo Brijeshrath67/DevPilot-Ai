@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, DateTime
-from sqlalchemy.sql import func
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
 from app.db.base import Base
+
 
 class HealthMetric(Base):
     __tablename__ = "health_metrics"

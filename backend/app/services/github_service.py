@@ -1,5 +1,5 @@
 import httpx
-from typing import Any
+
 
 class GitHubService:
     def fetch_repository(self, url: str) -> dict:

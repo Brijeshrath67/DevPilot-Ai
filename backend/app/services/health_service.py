@@ -1,7 +1,5 @@
-from typing import Dict
-
 class HealthService:
-    def compute_health_metrics(self, repository_summary: str | None = None) -> Dict[str, int]:
+    def compute_health_metrics(self, repository_summary: str | None = None) -> dict[str, int]:
         return {
             "documentation": 72,
             "testing": 65,

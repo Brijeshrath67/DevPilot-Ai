@@ -1,7 +1,5 @@
-from typing import Dict
-
 class ReportingSkill:
-    def compute_health_scores(self, metrics: Dict[str, float]) -> Dict[str, float]:
+    def compute_health_scores(self, metrics: dict[str, float]) -> dict[str, float]:
         documentation = metrics.get("documentation", 0)
         testing = metrics.get("testing", 0)
         security = metrics.get("security", 0)
