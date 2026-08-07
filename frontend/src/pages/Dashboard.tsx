@@ -46,15 +46,15 @@ export default function Dashboard() {
       onSuccess: async (data) => {
         const newRepoId = data.data.repository_id;
         setMessage({ type: "success", text: `Repository "${data.data.name}" ingested successfully! Initiating analysis...` });
-        
+
         // Clear inputs
         setSourceValue("");
         setRepoName("");
         setArchiveFile(null);
-        
+
         // Refresh repository list
         queryClient.invalidateQueries({ queryKey: ["repositories"] });
-        
+
         // Auto-trigger analyze
         try {
           await api.post(`/repos/${newRepoId}/analyze`, { analysis_scope: "full" });
@@ -77,7 +77,7 @@ export default function Dashboard() {
 
     const formData = new FormData();
     formData.append("source_type", sourceType);
-    
+
     if (sourceType === "github_url") {
       if (!sourceValue.trim()) {
         setMessage({ type: "error", text: "Please enter a GitHub repository URL." });
@@ -106,7 +106,7 @@ export default function Dashboard() {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Header />
-        
+
         <main className="flex-1 p-8 space-y-8 max-w-6xl w-full mx-auto">
           {/* Welcome Header */}
           <div className="bg-gradient-to-r from-slate-900 via-indigo-950/20 to-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl relative overflow-hidden">
@@ -195,8 +195,8 @@ export default function Dashboard() {
 
                 {message && (
                   <div className={`p-3 rounded-xl text-xs font-medium border ${
-                    message.type === "success" 
-                      ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400" 
+                    message.type === "success"
+                      ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-400"
                       : "bg-rose-500/5 border-rose-500/20 text-rose-400"
                   }`}>
                     {message.text}
@@ -261,7 +261,7 @@ export default function Dashboard() {
                           {repo.summary || (repo.source_url ? `Imported from: ${repo.source_url}` : "Workspace folder successfully ingested.")}
                         </p>
                       </div>
-                      
+
                       <div className="flex items-center justify-between border-t border-slate-800/60 pt-3 text-[11px] text-slate-500 font-medium">
                         <span>{repo.created_at ? new Date(repo.created_at).toLocaleDateString() : "Just now"}</span>
                         <span className="text-sky-400 group-hover:translate-x-1 transition-transform">Configure workspace &rarr;</span>

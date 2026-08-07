@@ -16,9 +16,9 @@ class Calculator:
 
 def load_config(expression: str) -> str:
     """Demo of an unsafe eval usage flagged by the SecuritySkill scanner."""
-    return eval(expression)  # noqa: S307 - intentional demo finding
+    return eval(expression)
 
 
 def run_command(command: str) -> int:
     """Demo of os.system usage flagged by the SecuritySkill scanner."""
-    return os.system(command)  # noqa: S605 - intentional demo finding
+    return os.system(command)

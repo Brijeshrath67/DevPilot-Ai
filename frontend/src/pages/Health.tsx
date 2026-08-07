@@ -16,7 +16,7 @@ function ScoreDial({ value, color: _color, trackColor }: { value: number; color:
   const r = 40;
   const circumference = 2 * Math.PI * r;
   const dashOffset = circumference - (value / 100) * circumference;
-  
+
   return (
     <div className="relative w-24 h-24 mx-auto">
       <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">

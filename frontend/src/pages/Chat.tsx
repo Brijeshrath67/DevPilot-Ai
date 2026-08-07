@@ -65,7 +65,7 @@ export default function Chat() {
   const handleSend = () => {
     const q = input.trim();
     if (!q || chatMutation.isLoading) return;
-    
+
     setMessages((prev) => [...prev, { id: ++msgCounter, sender: "user", text: q }]);
     setInput("");
     chatMutation.mutate(q);
