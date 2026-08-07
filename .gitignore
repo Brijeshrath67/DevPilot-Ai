@@ -3,21 +3,39 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-*.env
+*.db
+*.sqlite3
+.env
 .env.*
+!.env.example
 venv/
 .venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.mypy_cache/
 
 # Node
 node_modules/
 pnpm-lock.yaml
 dist/
 build/
+*.tsbuildinfo
+
+# Runtime data
+data/
+vector_store/
+*.log
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
 
 # IDE
 .vscode/
 .idea/
-*.log
 
 # OS
 .DS_Store

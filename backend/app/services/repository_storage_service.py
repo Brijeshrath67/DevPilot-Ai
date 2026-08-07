@@ -20,7 +20,12 @@ class RepositoryStorageService:
         with zipfile.ZipFile(zip_path, "r") as archive:
             archive.extractall(destination)
         entries = [child for child in destination.iterdir() if child.is_dir()]
-        return entries[0] if entries else destination
+        # GitHub archives wrap files in a single "owner-repo-branch/" directory.
+        # Use it only when there is exactly one top-level directory so arbitrary
+        # user zips are rooted at the extraction destination instead.
+        if len(entries) == 1:
+            return entries[0]
+        return destination
 
     def _download_github_archive(self, url: str, target_path: Path) -> Path:
         owner_repo_branch = self._parse_github_url(url)

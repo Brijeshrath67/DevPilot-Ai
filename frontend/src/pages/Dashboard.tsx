@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../lib/api";
 import Sidebar from "../components/common/Sidebar";
@@ -24,9 +24,12 @@ export default function Dashboard() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Fetch repositories
-  const { data: reposData, isLoading, error } = useQuery("repositories", async () => {
-    const res = await api.get("/repos");
-    return res.data;
+  const { data: reposData, isLoading, error } = useQuery({
+    queryKey: ["repositories"],
+    queryFn: async () => {
+      const res = await api.get("/repos");
+      return res.data;
+    },
   });
 
   const repos: Repository[] = reposData?.data || [];
@@ -50,7 +53,7 @@ export default function Dashboard() {
         setArchiveFile(null);
         
         // Refresh repository list
-        queryClient.invalidateQueries("repositories");
+        queryClient.invalidateQueries({ queryKey: ["repositories"] });
         
         // Auto-trigger analyze
         try {
