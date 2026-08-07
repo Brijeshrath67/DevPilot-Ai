@@ -15,7 +15,7 @@ try:  # pragma: no cover - optional dependency
     from pinecone import Pinecone
 
     _PINECONE_AVAILABLE = True
-except ImportError:
+except Exception:  # noqa: BLE001  # any package failure must degrade gracefully
     _PINECONE_AVAILABLE = False
 
 
