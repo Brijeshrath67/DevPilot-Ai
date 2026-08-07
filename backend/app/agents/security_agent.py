@@ -4,70 +4,35 @@ from app.skills.security_skill import SecuritySkill
 
 
 class SecurityAgent(BaseAgent):
+    """Dedicated security scanner using the security skill's pattern dictionary."""
+
     def __init__(self, database_service: DatabaseService) -> None:
-        self.security_skill = SecuritySkill()
         self.database_service = database_service
+        self.security_skill = SecuritySkill()
 
     def handle(self, payload: dict) -> dict:
         repository_id = payload.get("repository_id")
-        if not repository_id:
-            return {"error": "Missing repository_id"}
+        repository = self.database_service.get_repository(int(repository_id)) if repository_id else None
+        if not repository:
+            return {"security_score": 100.0, "issues": [], "recommendations": []}
 
-        repo = self.database_service.get_repository(int(repository_id))
-        if not repo or not repo.root_path:
-            return {"security_score": 100.0, "issues": [], "recommendations": ["No repository files found to scan."]}
+        issues = self.security_skill.scan_repository(repository.root_path or "") if repository.root_path else []
 
-        findings = self.security_skill.scan_repository(repo.root_path)
+        severity_weights = {"CRITICAL": 30, "HIGH": 15, "MEDIUM": 5, "MINOR": 1}
+        security_score = max(0, 100 - sum(severity_weights.get(i.get("severity", "MINOR"), 1) for i in issues))
 
-        # Compute dynamic security score
-        score = 100.0
-        critical_count = 0
-        high_count = 0
-        medium_count = 0
+        recommendations = [
+            f"CRITICAL - {i['vulnerability']} at {i['file']}:{i['line']} - {i['recommendation']}"
+            for i in issues
+            if i.get("severity") == "CRITICAL"
+        ] + [
+            f"HIGH - {i['vulnerability']} at {i['file']}:{i['line']} - {i['recommendation']}"
+            for i in issues
+            if i.get("severity") == "HIGH"
+        ]
 
-        for f in findings:
-            if f["severity"] == "CRITICAL":
-                score -= 25.0
-                critical_count += 1
-            elif f["severity"] == "HIGH":
-                score -= 15.0
-                high_count += 1
-            elif f["severity"] == "MEDIUM":
-                score -= 5.0
-                medium_count += 1
-
-        score = max(0.0, score)
-
-        # Update database health metrics with this new security score
-        health = self.database_service.get_health_metrics(repo.id)
-        current_scores = {
-            "documentation_score": health.documentation_score if health else 70.0,
-            "testing_score": health.testing_score if health else 60.0,
-            "security_score": score,
-            "maintainability_score": health.maintainability_score if health else 70.0,
-            "complexity_score": health.complexity_score if health else 70.0,
+        return {
+            "security_score": float(security_score),
+            "issues": issues,
+            "recommendations": recommendations,
         }
-        current_scores["overall_score"] = round(sum(current_scores.values()) / 5)
-        self.database_service.save_health_metrics(repo.id, current_scores)
-
-        # Generate custom recommendations based on scan results
-        recommendations = []
-        if critical_count > 0:
-            recommendations.append(
-                f"CRITICAL: Found {critical_count} exposed credentials or secrets. Revoke them "
-                "immediately and migrate to .env variables!"
-            )
-        if high_count > 0:
-            recommendations.append(
-                f"HIGH: Found {high_count} risky query or scripting methods (e.g. potential "
-                "SQL Injection). Rewrite using parameter bindings."
-            )
-        if medium_count > 0:
-            recommendations.append(
-                f"MEDIUM: Found {medium_count} unsafe command execution modules (e.g. eval/exec). "
-                "Replace with secure utility equivalents."
-            )
-        if not findings:
-            recommendations.append("Excellent! No major security vulnerabilities or exposed secrets were detected.")
-
-        return {"security_score": score, "issues": findings, "recommendations": recommendations}

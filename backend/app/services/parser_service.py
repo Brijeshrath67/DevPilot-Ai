@@ -5,65 +5,46 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-from app.db.session import SessionLocal
-from app.models.repository import Repository
+from app.core.constants import FRAMEWORK_KEYWORDS, LANGUAGE_EXTENSIONS
+from app.core.logger import get_logger
+from app.services.database_service import DatabaseService
 
-LANGUAGE_EXTENSIONS = {
-    ".py": "Python",
-    ".ts": "TypeScript",
-    ".tsx": "TypeScript",
-    ".js": "JavaScript",
-    ".jsx": "JavaScript",
-    ".java": "Java",
-    ".go": "Go",
-    ".rs": "Rust",
-    ".swift": "Swift",
-    ".kt": "Kotlin",
-    ".php": "PHP",
-}
-
-FRAMEWORK_KEYWORDS = {
-    "fastapi": "FastAPI",
-    "django": "Django",
-    "react": "React",
-    "next": "Next.js",
-    "vue": "Vue.js",
-    "flask": "Flask",
-    "express": "Express",
-}
+logger = get_logger(__name__)
 
 
 class ParserService:
+    def __init__(self) -> None:
+        self.database_service = DatabaseService()
+
     def analyze_repository(self, repository_id: str, scope: str = "full") -> dict:
-        with SessionLocal() as session:
-            repository = session.get(Repository, int(repository_id))
-            if not repository:
-                raise ValueError("Repository not found")
+        repository = self.database_service.get_repository(int(repository_id))
+        if not repository:
+            raise ValueError("Repository not found")
 
-            root_path = repository.root_path
-            if not root_path or not os.path.isdir(root_path):
-                return {
-                    "repository_id": repository_id,
-                    "scope": scope,
-                    "project_summary": "Repository metadata available, root path not configured.",
-                    "architecture_summary": "No local repository path found for architecture analysis.",
-                    "languages": [],
-                    "frameworks": [],
-                    "dependencies": [],
-                }
-
-            parsed = self._parse_repository(Path(root_path))
-            summary = self._summarize_project(repository.name, parsed)
-            architecture = self._summarize_architecture(parsed)
+        root_path = repository.root_path
+        if not root_path or not os.path.isdir(root_path):
             return {
                 "repository_id": repository_id,
                 "scope": scope,
-                "project_summary": summary,
-                "architecture_summary": architecture,
-                "languages": parsed["languages"],
-                "frameworks": parsed["frameworks"],
-                "dependencies": parsed["dependencies"],
+                "project_summary": "Repository metadata available, root path not configured.",
+                "architecture_summary": "No local repository path found for architecture analysis.",
+                "languages": [],
+                "frameworks": [],
+                "dependencies": [],
             }
+
+        parsed = self._parse_repository(Path(root_path))
+        summary = self._summarize_project(repository.name, parsed)
+        architecture = self._summarize_architecture(parsed)
+        return {
+            "repository_id": repository_id,
+            "scope": scope,
+            "project_summary": summary,
+            "architecture_summary": architecture,
+            "languages": parsed["languages"],
+            "frameworks": parsed["frameworks"],
+            "dependencies": parsed["dependencies"],
+        }
 
     def _parse_repository(self, root_path: Path) -> dict[str, Any]:
         languages = set()

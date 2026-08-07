@@ -4,17 +4,24 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import api_router
-from app.config.settings import settings
-from app.db import init_db
+from app.core.config import settings
+from app.core.logger import get_logger
+from app.database import init_db
+
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
+    logger.info("Starting %s", settings.app_name)
+    try:
+        init_db()
+    except Exception as exc:  # noqa: BLE001  # never crash startup on storage issues
+        logger.warning("Database initialization skipped: %s", exc)
     yield
 
 
-app = FastAPI(title=settings.app_name, version="1.0.0", lifespan=lifespan)
+app = FastAPI(title=settings.app_name, version=settings.app_version, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,15 +1,22 @@
 from app.agents.base_agent import BaseAgent
-from app.services.llm_service import LLMService
+from app.services.database_service import DatabaseService
+from app.services.testing_service import TestingService
 
 
 class TestingAgent(BaseAgent):
-    def __init__(self, llm_service: LLMService):
-        self.llm_service = llm_service
+    """Generates test scaffolds for the repository."""
+
+    def __init__(self, testing_service: TestingService, database_service: DatabaseService) -> None:
+        self.testing_service = testing_service
+        self.database_service = database_service
 
     def handle(self, payload: dict) -> dict:
-        test_types = payload.get("test_types", [])
-        tests = [
-            {"type": test_type, "content": self.llm_service.generate(f"Create tests for {test_type}")}
-            for test_type in test_types
-        ]
+        test_types = payload.get("test_types", ["unit"])
+        target_files = payload.get("target_files")
+        repository_id = payload.get("repository_id")
+        repository = self.database_service.get_repository(int(repository_id)) if repository_id else None
+        if not repository:
+            return {"error": "Repository not found"}
+
+        tests = self.testing_service.generate(test_types, target_files)
         return {"tests": tests}

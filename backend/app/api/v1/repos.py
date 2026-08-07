@@ -1,12 +1,5 @@
-from app.agents.code_review import CodeReviewAgent
-from app.agents.documentation import DocumentationAgent
 from app.agents.orchestrator import AgentOrchestrator
-from app.agents.project_health import ProjectHealthAgent
-from app.agents.repository_analyzer import RepositoryAnalyzerAgent
-from app.agents.repository_chat import RepositoryChatAgent
-from app.agents.security_agent import SecurityAgent
-from app.agents.testing import TestingAgent
-from app.config.settings import settings
+from app.core.config import settings
 from app.schemas.repo import (
     AnalyzeRepositoryRequest,
     ChatRequest,
@@ -17,7 +10,6 @@ from app.schemas.repo import (
 from app.services.database_service import DatabaseService
 from app.services.embedding_service import EmbeddingService
 from app.services.github_service import GitHubService
-from app.services.health_service import HealthService
 from app.services.llm_service import LLMService
 from app.services.parser_service import ParserService
 from app.services.repository_storage_service import RepositoryStorageService
@@ -27,7 +19,6 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 router = APIRouter(prefix="/repos", tags=["repositories"])
 
 llm_service = LLMService(settings.ai_api_key, settings.ai_api_url)
-parser_service = ParserService()
 database_service = DatabaseService()
 github_service = GitHubService()
 embedding_service = EmbeddingService()
@@ -35,45 +26,31 @@ vector_service = VectorService()
 storage_service = RepositoryStorageService()
 orchestrator = AgentOrchestrator(
     llm_service=llm_service,
-    parser_service=parser_service,
+    parser_service=ParserService(),
     embedding_service=embedding_service,
     vector_service=vector_service,
     github_service=github_service,
     database_service=database_service,
 )
 
-orchestrator.register_agent("repository_analyzer", RepositoryAnalyzerAgent(parser_service, database_service))
-orchestrator.register_agent("code_review", CodeReviewAgent(llm_service))
-orchestrator.register_agent("documentation", DocumentationAgent(llm_service))
-orchestrator.register_agent("testing", TestingAgent(llm_service))
-orchestrator.register_agent("repository_chat", RepositoryChatAgent(llm_service, vector_service))
-orchestrator.register_agent("project_health", ProjectHealthAgent(database_service))
-orchestrator.register_agent("security_agent", SecurityAgent(database_service))
-
-health_service = HealthService()
-
 
 @router.get("")
 def list_repositories():
-    from app.db.session import SessionLocal
-    from app.models.repository import Repository
-
-    with SessionLocal() as session:
-        repos = session.query(Repository).order_by(Repository.id.desc()).all()
-        return {
-            "status": "success",
-            "data": [
-                {
-                    "repository_id": r.id,
-                    "name": r.name,
-                    "source_url": r.source_url,
-                    "status": r.status,
-                    "summary": r.summary,
-                    "created_at": r.created_at.isoformat() if r.created_at else None,
-                }
-                for r in repos
-            ],
-        }
+    repos = database_service.list_repositories()
+    return {
+        "status": "success",
+        "data": [
+            {
+                "repository_id": r.id,
+                "name": r.name,
+                "source_url": r.source_url,
+                "status": r.status,
+                "summary": r.summary,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in repos
+        ],
+    }
 
 
 @router.post("/upload")
@@ -188,7 +165,7 @@ def repository_health(repo_id: str):
 
 @router.post("/{repo_id}/security")
 def security_audit(repo_id: str):
-    response = orchestrator.route("security_agent", {"repository_id": repo_id})
+    response = orchestrator.route("security", {"repository_id": repo_id})
     return {"status": "success", "data": response}
 
 

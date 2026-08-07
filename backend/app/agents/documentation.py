@@ -1,14 +1,22 @@
 from app.agents.base_agent import BaseAgent
-from app.services.llm_service import LLMService
+from app.services.database_service import DatabaseService
+from app.services.documentation_service import DocumentationService
 
 
 class DocumentationAgent(BaseAgent):
-    def __init__(self, llm_service: LLMService):
-        self.llm_service = llm_service
+    """Generates developer documentation for the repository."""
+
+    def __init__(self, documentation_service: DocumentationService, database_service: DatabaseService) -> None:
+        self.documentation_service = documentation_service
+        self.database_service = database_service
 
     def handle(self, payload: dict) -> dict:
-        doc_types = payload.get("doc_types", [])
-        documents = [
-            {"type": doc_type, "content": self.llm_service.generate(f"Generate {doc_type}")} for doc_type in doc_types
-        ]
+        doc_types = payload.get("doc_types", ["README"])
+        target_files = payload.get("target_files")
+        repository_id = payload.get("repository_id")
+        repository = self.database_service.get_repository(int(repository_id)) if repository_id else None
+        if not repository:
+            return {"error": "Repository not found"}
+
+        documents = self.documentation_service.generate(doc_types, target_files)
         return {"documents": documents}

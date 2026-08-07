@@ -17,9 +17,10 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 
 from app.agents.repository_analyzer import RepositoryAnalyzerAgent
-from app.config.settings import settings
-from app.db import init_db
-from app.models.repository import Repository
+from app.core.config import settings
+from app.database import init_db
+from app.database.models import Repository
+from app.database.db import SessionLocal
 from app.services.database_service import DatabaseService
 from app.services.parser_service import ParserService
 
@@ -33,8 +34,6 @@ def main() -> None:
         print("examples/sample_repo not found; build the fixture first.")
         print("  python scripts/make_sample_zip.py")
         return
-
-    from app.db.session import SessionLocal
 
     with SessionLocal() as session:
         repo = (

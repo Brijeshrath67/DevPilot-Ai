@@ -1,82 +1,77 @@
-import os
 from pathlib import Path
+from typing import Any
 
 from app.agents.base_agent import BaseAgent
+from app.core.constants import IGNORED_DIRECTORIES, LANGUAGE_EXTENSIONS
 from app.services.database_service import DatabaseService
 from app.services.parser_service import ParserService
+from app.utils.helpers import sha256_checksum
 
 
 class RepositoryAnalyzerAgent(BaseAgent):
-    def __init__(self, parser_service: ParserService, database_service: DatabaseService):
+    """Analyzes repository structure, indexes files and persists summaries.
+
+    Uses the routed LLM (default: Groq) to write the project summary when a
+    real API key is configured, falling back to rule-based parsing otherwise.
+    """
+
+    def __init__(self, parser_service: ParserService, database_service: DatabaseService, llm: Any = None) -> None:
         self.parser_service = parser_service
         self.database_service = database_service
+        self.llm = llm
 
     def handle(self, payload: dict) -> dict:
-        repository_id = payload["repository_id"]
-        analysis_scope = payload.get("analysis_scope", "full")
+        repository_id = payload.get("repository_id")
+        if not repository_id:
+            return {"error": "Missing repository_id"}
+        repository = self.database_service.get_repository(int(repository_id))
+        if not repository:
+            return {"error": "Repository not found"}
 
-        summary = self.parser_service.analyze_repository(repository_id, scope=analysis_scope)
-        self.database_service.save_analysis_report(int(repository_id), "repository_analysis", summary)
+        result = self.parser_service.analyze_repository(str(repository_id), scope=payload.get("analysis_scope", "full"))
+
+        if repository.root_path and Path(repository.root_path).is_dir():
+            files = self._index_files(Path(repository.root_path))
+            self.database_service.save_repository_files(repository.id, files)
+
+        self.database_service.save_analysis_report(repository.id, "repository_analysis", result)
         self.database_service.update_repository_summary(
-            int(repository_id),
-            summary["project_summary"],
-            summary["architecture_summary"],
+            repository.id, result["project_summary"], result["architecture_summary"]
         )
 
-        # Index files in database and vector store for chat contextual QA
-        repo = self.database_service.get_repository(int(repository_id))
-        if repo and repo.root_path:
-            root = Path(repo.root_path)
-            db_files = []
-            vector_items = []
+        return {
+            "repository_id": repository.id,
+            "summary": {
+                "project_summary": self._enhance_summary(repository.name, result),
+                "architecture_summary": result["architecture_summary"],
+                "languages": result["languages"],
+                "frameworks": result["frameworks"],
+                "dependencies": result["dependencies"],
+            },
+        }
 
-            for path in root.rglob("*"):
-                if path.is_file():
-                    if any(
-                        part in path.parts
-                        for part in ["venv", ".venv", "node_modules", ".git", "__pycache__", "dist", "build"]
-                    ):
-                        continue
+    def _enhance_summary(self, name: str, result: dict) -> str:
+        """Ask the routed LLM for a richer summary when a real key is present."""
+        if self.llm is None or not getattr(self.llm, "api_key", None) or self.llm.api_key in {"", "mock_key"}:
+            return result["project_summary"]
+        prompt = (
+            f"Write a 2-3 sentence project summary for '{name}'. "
+            f"Languages: {result['languages']}. Frameworks: {result['frameworks']}. "
+            f"Dependencies: {result['dependencies']}."
+        )
+        return self.llm.generate(prompt, temperature=0.2, max_tokens=160)
 
-                    suffix = path.suffix.lower()
-                    from app.services.parser_service import LANGUAGE_EXTENSIONS
-
-                    language = LANGUAGE_EXTENSIONS.get(suffix, "Text")
-
-                    relative_path = str(path.relative_to(root)).replace("\\", "/")
-                    db_files.append(
-                        {
-                            "file_path": relative_path,
-                            "language": language,
-                            "file_type": "source_code"
-                            if suffix in LANGUAGE_EXTENSIONS
-                            else "documentation"
-                            if suffix in [".md", ".txt"]
-                            else "config",
-                            "checksum": str(os.path.getsize(path)),
-                        }
-                    )
-
-                    try:
-                        content = path.read_text(encoding="utf-8", errors="ignore")
-                        if len(content.strip()) > 10:
-                            vector_items.append(
-                                {
-                                    "id": f"{repository_id}_{relative_path}",
-                                    "vector": [0.0],
-                                    "text": f"File: {relative_path}\nLanguage: {language}\nContent:\n{content[:2000]}",
-                                    "metadata": {"repository_id": str(repository_id), "file_path": relative_path},
-                                }
-                            )
-                    except Exception:  # noqa: S110  # best-effort indexing, skip unreadable files
-                        pass
-
-            if db_files:
-                self.database_service.save_repository_files(repo.id, db_files)
-            if vector_items:
-                from app.services.vector_service import VectorService
-
-                v_service = VectorService()
-                v_service.upsert_vectors(vector_items)
-
-        return {"analysis_id": repository_id, "summary": summary}
+    def _index_files(self, root_path: Path) -> list[dict]:
+        source_extensions = {".py", ".ts", ".tsx", ".js", ".jsx", ".java"}
+        files = []
+        for path in root_path.rglob("*"):
+            if path.is_file() and not any(part in path.parts for part in IGNORED_DIRECTORIES):
+                files.append(
+                    {
+                        "file_path": str(path.relative_to(root_path)).replace("\\", "/"),
+                        "language": LANGUAGE_EXTENSIONS.get(path.suffix),
+                        "file_type": "source" if path.suffix in source_extensions else "file",
+                        "checksum": sha256_checksum(path.read_text(encoding="utf-8", errors="ignore")),
+                    }
+                )
+        return files
