@@ -39,9 +39,13 @@
 - `docs/ARCHITECTURE.md` complete
 - `docs/ROADMAP.md` complete
 - `docs/API_CONTRACTS.md` complete
+- `docs/TESTING.md` complete
 - Backend scaffold and core endpoints available
 - Frontend shell with pages and routing available
-- CI workflow defined
+- CI workflows defined and passing (`backend.yml`, `frontend.yml`, `test.yml`)
+- Deploy pipeline defined (`deploy.yml`) with Docker images and Compose
+- Unit and end-to-end tests green locally and in CI
+- Developer scripts (`setup`, `run`, `seed`, `cleanup`) runnable
 
 ## Release notes
 The first delivery should demonstrate the full architecture, a working repository analyzer API, and the dashboard UI shell. Subsequent releases add AI agents and RAG-based repository chat.

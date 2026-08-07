@@ -72,7 +72,9 @@ class SecuritySkill:
                                         "line": line_num,
                                         "severity": "CRITICAL",
                                         "vulnerability": title,
-                                        "description": f"Potential leak of confidential key or token: `{line.strip()[:40]}...`",
+                                        "description": (
+                                            f"Potential leak of confidential key or token: `{line.strip()[:40]}...`"
+                                        ),
                                         "recommendation": (
                                             "Move secrets and credentials to secure environment variables "
                                             "(.env files) or secret managers."
