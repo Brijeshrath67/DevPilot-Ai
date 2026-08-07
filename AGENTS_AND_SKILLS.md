@@ -22,15 +22,7 @@ into the live application.
     (string concatenation, `%`-modulation, f-string interpolation).
 - **Tests**: `backend/tests/agents/test_security_skill.py`
 
-### 1.2 LLM Skill (`LLMSkill`)
-
-- **File Path**: `backend/app/skills/llm_skill.py`
-- **Purpose**: Thin wrapper that exposes `generate_text()` over any
-  OpenAI-compatible `LLMService`, so services can request text without knowing
-  which provider is behind the request.
-- **Tests**: covered indirectly through services and agents.
-
-### 1.3 RAG Skill (`RAGSkill`)
+### 1.2 RAG Skill (`RAGSkill`)
 
 - **File Path**: `backend/app/skills/rag_skill.py`
 - **Purpose**: Retrieval-augmented generation. Retrieves repository context from
@@ -38,17 +30,11 @@ into the live application.
   answers through the routed LLM (default: OpenRouter). Answers carry a
   `provenance` list for source tracing.
 
-### 1.4 Reporting Skill (`ReportingSkill`)
+### 1.3 Reporting Skill (`ReportingSkill`)
 
 - **File Path**: `backend/app/skills/reporting_skill.py`
 - **Purpose**: Computes the five health sub-scores plus the overall health score
   from raw metrics, and formats structured summaries for agents and the UI.
-
-### 1.5 Repository Parser Skill (`RepositoryParserSkill`)
-
-- **File Path**: `backend/app/skills/repository_parser_skill.py`
-- **Purpose**: Structure-level parsing entry point (files, languages,
-  frameworks, dependencies) consumed by the analyzer agent.
 
 ---
 

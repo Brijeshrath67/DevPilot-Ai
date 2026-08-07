@@ -1,16 +1,6 @@
 from pydantic import BaseModel
 
 
-class UploadRepositoryRequest(BaseModel):
-    source_type: str
-    source_value: str | None = None
-    repository_name: str | None = None
-
-
-class UploadRepositoryFileRequest(BaseModel):
-    repository_name: str | None = None
-
-
 class AnalyzeRepositoryRequest(BaseModel):
     analysis_scope: str = "full"
 
