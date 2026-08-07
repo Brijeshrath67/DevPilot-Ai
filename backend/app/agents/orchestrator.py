@@ -23,7 +23,7 @@ class AgentOrchestrator:
     """Routes task types to registered specialized agents.
 
     Each of the six AI agents is bound to a distinct LLM provider (Groq,
-    Gemini, Mistral, NVIDIA, OpenRouter, Cerebras) resolved through
+    Hugging Face, Mistral, NVIDIA, OpenRouter, Cerebras) resolved through
     :class:`LLMProviderRegistry`. The seventh (``security``) is rule-based.
     """
 

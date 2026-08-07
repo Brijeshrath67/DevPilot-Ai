@@ -34,13 +34,13 @@ export default function Settings() {
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-5">
               <div>
                 <h2 className="text-sm font-bold text-white">AI API Configuration</h2>
-                <p className="text-xs text-slate-400 mt-0.5">Connect to Gemini, OpenAI, or a compatible local endpoint.</p>
+                <p className="text-xs text-slate-400 mt-0.5">Connect to Groq, Hugging Face, Mistral, NVIDIA, OpenRouter, Cerebras, or a compatible endpoint.</p>
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">API Key</label>
                 <input
                   type="password"
-                  placeholder="sk-... or your Gemini API key"
+                  placeholder="sk-... or your provider API key"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500 transition-colors font-mono"
@@ -84,7 +84,7 @@ export default function Settings() {
                   ["Backend", "FastAPI + Python 3.12"],
                   ["Database", "MongoDB Atlas (SQLite fallback)"],
                   ["Vector Store", "Pinecone (local fallback)"],
-                  ["AI Engine", "Gemini / OpenAI compatible"],
+                  ["AI Engine", "Multi-provider (Groq / HF / Mistral / NVIDIA / OpenRouter / Cerebras)"],
                   ["License", "MIT"],
                 ].map(([label, value]) => (
                   <div key={label} className="flex flex-col">

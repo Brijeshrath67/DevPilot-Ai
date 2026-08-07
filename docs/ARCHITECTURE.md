@@ -45,7 +45,7 @@ User → React Frontend → FastAPI Backend → AI Orchestrator → Specialized 
 
 - Seven specialized agents:
   1. Repository Analyzer Agent → Groq
-  2. Code Review Agent → Gemini
+  2. Code Review Agent → Hugging Face
   3. Documentation Agent → Mistral
   4. Testing Agent → NVIDIA
   5. Repository Chat Agent → OpenRouter
@@ -175,7 +175,7 @@ README.md
 - `Parser Service` - repository file parsing, AST extraction, dependency graph
 - `Embedding Service` - text embedding generation and storage
 - `Vector Service` - Pinecone operations for RAG retrieval (local JSON index fallback)
-- `LLM Service` - OpenAI-compatible chat client driving Groq, Gemini, Mistral, NVIDIA, OpenRouter, and Cerebras endpoints
+- `LLM Service` - OpenAI-compatible chat client driving Groq, Hugging Face, Mistral, NVIDIA, OpenRouter, and Cerebras endpoints
 - `Database Service` - persistence layer and repository pattern
 - `Documentation Service` - generation, templating, formatting
 - `Testing Service` - test case scaffolding and coverage analysis
@@ -334,7 +334,7 @@ README.md
 
 ### Bottlenecks
 - Embedding storage and retrieval latency for repo chat
-- Gemini API rate limits and prompt cost
+- LLM provider rate limits and prompt cost
 - Parsing large repositories and dependency graphs
 - Health score calibration and meaningful metrics
 

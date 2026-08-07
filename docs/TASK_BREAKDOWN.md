@@ -40,7 +40,7 @@ commits; see the git history for the progressive record.
       provenance and graceful failure.
 - [x] Agents bound to providers:
   - Repository Analyzer → Groq
-  - Code Review → Gemini
+  - Code Review → Hugging Face
   - Documentation → Mistral
   - Testing → NVIDIA
   - Repository Chat → OpenRouter

@@ -59,7 +59,7 @@ fix recommendations."
 **Acceptance criteria**:
 - `POST /api/v1/repos/{repo_id}/code-review` returns `issues` (severity, file,
   line, vulnerability, description, recommendation) and `recommendations`.
-- Static security scanning always runs; the Code Review Agent (Gemini) adds a
+- Static security scanning always runs; the Code Review Agent (Hugging Face) adds a
   qualitative LLM pass when a real key is present.
 - The sample repo's intentionally exposed secret is always detected.
 
@@ -117,7 +117,7 @@ documentation, testing, security, maintainability, and complexity."
 and fall back gracefully when a key is missing."
 
 **Acceptance criteria**:
-- Six agents map to six providers (Groq, Gemini, Mistral, NVIDIA, OpenRouter,
+- Six agents map to six providers (Groq, Hugging Face, Mistral, NVIDIA, OpenRouter,
   Cerebras) via `settings.agent_llm_providers`.
 - Missing provider keys fall back to `AI_API_KEY` (default `mock_key`).
 - All workflows remain fully functional offline with a single mock key.

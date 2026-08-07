@@ -8,9 +8,9 @@ logger = get_logger(__name__)
 class LLMService:
     """Client for OpenAI-compatible chat completion endpoints.
 
-    All routed providers (Groq, Gemini, Mistral, NVIDIA, OpenRouter, Cerebras)
-    expose this protocol, so a single client drives every provider. The
-    ``provider`` name is kept for provenance and logging.
+    All routed providers (Groq, Hugging Face, Mistral, NVIDIA, OpenRouter,
+    Cerebras) expose this protocol, so a single client drives every provider.
+    The ``provider`` name is kept for provenance and logging.
     """
 
     def __init__(self, api_key: str, api_url: str, model: str | None = None, provider: str = "openai") -> None:

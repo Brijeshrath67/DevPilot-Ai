@@ -1,7 +1,7 @@
 """Multi-provider LLM routing.
 
 Each specialized agent is backed by a distinct LLM provider. All six providers
-(Groq, Gemini, Mistral, NVIDIA, OpenRouter, Cerebras) expose an
+(Groq, Hugging Face, Mistral, NVIDIA, OpenRouter, Cerebras) expose an
 OpenAI-compatible chat completions endpoint, so ``LLMService`` can drive them
 all. This module builds a per-provider ``LLMService`` from settings and resolves
 the provider assigned to each agent.
@@ -22,7 +22,6 @@ logger = get_logger(__name__)
 
 DEFAULT_MODELS = {
     "groq": "llama-3.3-70b-versatile",
-    "gemini": "gemini-2.0-flash",
     "mistral": "mistral-large-latest",
     "nvidia": "meta/llama-3.3-70b-instruct",
     "openrouter": "openai/gpt-4o-mini",
@@ -32,7 +31,6 @@ DEFAULT_MODELS = {
 
 DEFAULT_BASE_URLS = {
     "groq": "https://api.groq.com/openai/v1",
-    "gemini": "https://generativelanguage.googleapis.com/v1beta/openai/",
     "mistral": "https://api.mistral.ai/v1",
     "nvidia": "https://integrate.api.nvidia.com/v1",
     "openrouter": "https://openrouter.ai/api/v1",

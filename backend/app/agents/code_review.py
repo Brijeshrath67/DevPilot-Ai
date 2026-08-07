@@ -6,9 +6,9 @@ from app.skills.security_skill import SecuritySkill
 
 
 class CodeReviewAgent(BaseAgent):
-    """Review agent: static security scan (rule-based) + LLM review (Gemini).
+    """Review agent: static security scan (rule-based) + LLM review.
 
-    The rule-based SecuritySkill always runs. When a real Gemini key is
+    The rule-based SecuritySkill always runs. When a real provider key is
     configured, the routed LLM adds a qualitative review pass; otherwise the
     rule-based findings are the review output.
     """
@@ -53,7 +53,7 @@ class CodeReviewAgent(BaseAgent):
         return content
 
     def _provider_name(self) -> str:
-        return getattr(self.llm, "provider", "Gemini") if self.llm else "Gemini"
+        return getattr(self.llm, "provider", "huggingface") if self.llm else "huggingface"
 
     @staticmethod
     def _recommendation(issue: dict) -> str:

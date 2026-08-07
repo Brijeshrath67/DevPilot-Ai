@@ -67,11 +67,11 @@ seventh is a pure rule-based security auditor.
 - **LLM Integration**: when a real Groq key is configured, the agent asks Groq
   for a richer project summary; otherwise it falls back to rule-based parsing.
 
-### 2.2 Code Review Agent → Gemini
+### 2.2 Code Review Agent → Hugging Face
 
 - **File Path**: `backend/app/agents/code_review.py`
 - **Purpose**: Runs a static security scan (via `SecuritySkill`) and, when a
-  real Gemini key is configured, a qualitative LLM review pass. Returns
+  real Hugging Face key is configured, a qualitative LLM review pass. Returns
   severity-graded `issues` and actionable `recommendations`.
 
 ### 2.3 Documentation Agent → Mistral
@@ -123,7 +123,7 @@ seventh is a pure rule-based security auditor.
 | Agent | Provider | Base URL |
 | --- | --- | --- |
 | Repository Analyzer | Groq | `https://api.groq.com/openai/v1` |
-| Code Review | Gemini | `https://generativelanguage.googleapis.com/v1beta/openai/` |
+| Code Review | Hugging Face | `https://router.huggingface.co/v1` |
 | Documentation | Mistral | `https://api.mistral.ai/v1` |
 | Testing | NVIDIA | `https://integrate.api.nvidia.com/v1` |
 | Repository Chat | OpenRouter | `https://openrouter.ai/api/v1` |

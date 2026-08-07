@@ -17,7 +17,7 @@ DevPilot AI is a modular, production-grade SaaS platform that helps engineering 
 
 - **Frontend**: React + Vite + TailwindCSS + shadcn/ui + React Router + Axios + React Query
 - **Backend**: FastAPI + Python + SQLAlchemy + Pydantic V2
-- **AI Core**: 6 specialized agents, each backed by a distinct LLM provider (Groq, Gemini, Mistral, NVIDIA, OpenRouter, Cerebras) + shared skills + vector query service (Pinecone, with a local JSON fallback for offline RAG)
+- **AI Core**: 6 specialized agents, each backed by a distinct LLM provider (Groq, Hugging Face, Mistral, NVIDIA, OpenRouter, Cerebras) + shared skills + vector query service (Pinecone, with a local JSON fallback for offline RAG)
 - **Database**: MongoDB Atlas (primary, when `MONGODB_URI` is configured) / SQLite (local fallback)
 - **Vector Store**: Pinecone (when `VECTOR_STORE=pinecone`) / local JSON index (fallback)
 - **Auth**: JWT (GitHub OAuth optional)
@@ -95,11 +95,11 @@ Seeds the bundled `examples/sample_repo` into the local database and runs the an
 ```dotenv
 # LLM fallback (used when a provider-specific key is missing)
 AI_API_KEY=mock_key
-AI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent
+AI_API_URL=https://api.openai.com/v1
 
 # One provider per agent — fill in whichever keys you hold
 GROQ_API_KEY=            # Repository Analyzer
-GEMINI_API_KEY=          # Code Review
+HUGGINGFACE_API_KEY=     # Code Review
 MISTRAL_API_KEY=         # Documentation
 NVIDIA_API_KEY=          # Testing
 OPENROUTER_API_KEY=      # Repository Chat
