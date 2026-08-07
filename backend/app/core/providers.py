@@ -27,6 +27,7 @@ DEFAULT_MODELS = {
     "nvidia": "meta/llama-3.3-70b-instruct",
     "openrouter": "openai/gpt-4o-mini",
     "cerebras": "gpt-oss-120b",
+    "huggingface": "meta-llama/Llama-3.3-70B-Instruct",
 }
 
 DEFAULT_BASE_URLS = {
@@ -36,6 +37,7 @@ DEFAULT_BASE_URLS = {
     "nvidia": "https://integrate.api.nvidia.com/v1",
     "openrouter": "https://openrouter.ai/api/v1",
     "cerebras": "https://api.cerebras.ai/v1",
+    "huggingface": "https://router.huggingface.co/v1",
 }
 
 

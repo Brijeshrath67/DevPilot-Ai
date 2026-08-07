@@ -47,10 +47,14 @@ class Settings(BaseSettings):
     cerebras_base_url: str = "https://api.cerebras.ai/v1"
     cerebras_model: str = "gpt-oss-120b"
 
+    huggingface_api_key: str = ""
+    huggingface_base_url: str = "https://router.huggingface.co/v1"
+    huggingface_model: str = "meta-llama/Llama-3.3-70B-Instruct"
+
     # Maps each agent to the provider it should use.
     agent_llm_providers: dict[str, str] = {
         "repository_analyzer": "groq",
-        "code_review": "gemini",
+        "code_review": "huggingface",
         "documentation": "mistral",
         "testing": "nvidia",
         "repository_chat": "openrouter",

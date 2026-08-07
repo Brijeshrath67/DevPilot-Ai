@@ -5,9 +5,9 @@ from app.core.providers import DEFAULT_BASE_URLS, DEFAULT_MODELS, LLMProviderReg
 
 
 class TestLLMProviderRegistry:
-    def test_all_six_providers_resolve(self):
+    def test_all_providers_resolve(self):
         registry = LLMProviderRegistry(Settings())
-        providers = ["groq", "gemini", "mistral", "nvidia", "openrouter", "cerebras"]
+        providers = ["groq", "gemini", "mistral", "nvidia", "openrouter", "cerebras", "huggingface"]
         services = {name: registry.get_service(name) for name in providers}
 
         for name in providers:
@@ -17,8 +17,8 @@ class TestLLMProviderRegistry:
             assert service.api_url == DEFAULT_BASE_URLS[name]
 
     def test_default_models_match_documented_providers(self):
-        assert len(DEFAULT_MODELS) == 6
-        assert len(DEFAULT_BASE_URLS) == 6
+        assert len(DEFAULT_MODELS) == 7
+        assert len(DEFAULT_BASE_URLS) == 7
         assert set(DEFAULT_MODELS) == set(DEFAULT_BASE_URLS)
 
     def test_every_agent_has_a_distinct_provider(self):
