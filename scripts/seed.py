@@ -19,8 +19,8 @@ sys.path.insert(0, str(ROOT / "backend"))
 from app.agents.repository_analyzer import RepositoryAnalyzerAgent
 from app.core.config import settings
 from app.database import init_db
-from app.database.models import Repository
 from app.database.db import SessionLocal
+from app.database.models import Repository
 from app.services.database_service import DatabaseService
 from app.services.parser_service import ParserService
 

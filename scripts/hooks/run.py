@@ -27,7 +27,7 @@ def main() -> None:
         sys.exit(f"subdirectory does not exist: {subdir}")
 
     os.chdir(subdir)
-    result = subprocess.run(sys.argv[2:], shell=os.name == "nt")
+    result = subprocess.run(sys.argv[2:], shell=os.name == "nt", check=False)
     sys.exit(result.returncode)
 
 
