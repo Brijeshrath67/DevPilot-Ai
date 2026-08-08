@@ -23,11 +23,68 @@ The platform is intentionally not a generic chat interface. It is a workflow-cen
 
 ## 3. High-Level System Architecture
 
-User → React Frontend → FastAPI Backend → AI Orchestrator → Specialized AI Agents → Shared Skills/Services → MongoDB Atlas + Pinecone → Response
+```mermaid
+flowchart TB
+    subgraph client["Client"]
+        UI["React SPA<br/>(Vite + TypeScript + TailwindCSS)"]
+        AX["lib/api.ts<br/>Axios + React Query"]
+    end
+
+    subgraph backend["Backend — FastAPI (Python 3.12)"]
+        REST["REST API v1<br/>/api/v1/repos/*"]
+        ORCH["Agent Orchestrator<br/>app/agents/orchestrator.py"]
+        subgraph agents["AI Agents"]
+            A1["Repository Analyzer — Groq"]
+            A2["Code Review — Hugging Face"]
+            A3["Documentation — Groq"]
+            A4["Testing — NVIDIA"]
+            A5["Repository Chat — OpenRouter"]
+            A6["Project Health — OpenRouter"]
+            A7["Security Audit — rule-based"]
+        end
+        subgraph skills["Shared Skills"]
+            S1["Security Skill"]
+            S2["RAG Skill"]
+            S3["Reporting Skill"]
+            S4["Quality Skill"]
+        end
+        subgraph svc["Services"]
+            V1["LLM Service"]
+            V2["Vector Service"]
+            V3["Database Service"]
+            V4["Parser Service"]
+            V5["Docs / Tests / PDF Services"]
+        end
+    end
+
+    subgraph llm["LLM Providers (OpenAI-compatible)"]
+        P1["Groq"]
+        P2["Hugging Face"]
+        P3["NVIDIA NIM"]
+        P4["OpenRouter"]
+    end
+
+    DB[("MongoDB Atlas / SQLite")]
+    VEC[("Pinecone / local JSON index")]
+
+    UI --> AX --> REST --> ORCH
+    ORCH --> A1 & A2 & A3 & A4 & A5 & A6 & A7
+    A1 --> V4 & V3 & V1
+    A2 --> S1 & V1
+    A3 --> V5 & V1
+    A4 --> V5 & V1
+    A5 --> S2 & V1
+    A6 --> S3 & S4 & V1
+    A7 --> S1
+    S2 --> V2
+    V2 --> VEC
+    V3 --> DB
+    V1 --> P1 & P2 & P3 & P4
+```
 
 ### 3.1 Frontend
 
-- React + Vite + TailwindCSS + shadcn/ui
+- React + Vite + TypeScript + TailwindCSS
 - React Router for page navigation
 - Axios for API calls
 - React Query for caching and asynchronous state management
@@ -46,7 +103,7 @@ User → React Frontend → FastAPI Backend → AI Orchestrator → Specialized 
 - Seven specialized agents:
   1. Repository Analyzer Agent → Groq
   2. Code Review Agent → Hugging Face
-  3. Documentation Agent → Mistral
+  3. Documentation Agent → Groq
   4. Testing Agent → NVIDIA
   5. Repository Chat Agent → OpenRouter
   6. Project Health Agent → OpenRouter
@@ -290,6 +347,60 @@ README.md
 7. Pinecone retrieves context for chat/RAG tasks (local vector index when offline)
 8. Agent returns structured response to orchestrator
 9. Backend sends normalized response to frontend
+
+### 9.1 End-to-end repository analysis (sequence)
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend (React)
+    participant B as Backend (FastAPI)
+    participant O as Orchestrator
+    participant A as Repository Analyzer Agent
+    participant S as Skills & Services
+    participant LLM as Groq (LLM)
+    participant DB as Storage
+
+    U->>F: Upload ZIP / GitHub URL
+    F->>B: POST /api/v1/repos/upload
+    B->>O: create Repository, route to Analyzer
+    O->>A: analyze(repository_id)
+    A->>S: parse files, detect languages / frameworks / dependencies
+    S->>DB: persist repository + file index
+    alt real Groq key configured
+        A->>LLM: enrich project + architecture summary
+        LLM-->>A: summary text
+    else mock_key
+        A->>S: rule-based summary (offline)
+    end
+    A-->>O: summary payload
+    O-->>B: normalized response
+    B-->>F: 200 + repository summary
+    F-->>U: render overview dashboard
+```
+
+### 9.2 Repository QA chat with provenance (sequence)
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend (React)
+    participant B as Backend (FastAPI)
+    participant RC as Repository Chat Agent
+    participant V as Vector Service
+    participant LLM as OpenRouter (LLM)
+
+    U->>F: ask a question
+    F->>B: POST /api/v1/repos/{id}/chat
+    B->>RC: question + repository_id
+    RC->>V: retrieve top-k context (Pinecone / local index)
+    V-->>RC: chunks with file_path metadata
+    RC->>LLM: grounded prompt with cited snippets
+    LLM-->>RC: answer
+    RC-->>B: answer + provenance citations
+    B-->>F: 200 + { answer, provenance }
+    F-->>U: render answer with source links
+```
 
 ## 10. Implementation Roadmap
 

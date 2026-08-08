@@ -15,16 +15,37 @@ DevPilot AI is a modular, production-grade SaaS platform that helps engineering 
 
 ## Architecture
 
-- **Frontend**: React + Vite + TailwindCSS + shadcn/ui + React Router + Axios + React Query
+- **Frontend**: React + Vite + TypeScript + TailwindCSS + React Router + Axios + React Query
 - **Backend**: FastAPI + Python + SQLAlchemy + Pydantic V2
-- **AI Core**: 6 specialized agents, backed by multiple LLM providers (Groq, Hugging Face, Mistral, NVIDIA, OpenRouter) + shared skills + vector query service (Pinecone, with a local JSON fallback for offline RAG)
+- **AI Core**: 6 specialized agents, backed by multiple LLM providers (Groq, Hugging Face, NVIDIA, OpenRouter) + shared skills + vector query service (Pinecone, with a local JSON fallback for offline RAG)
 - **Database**: MongoDB Atlas (primary, when `MONGODB_URI` is configured) / SQLite (local fallback)
 - **Vector Store**: Pinecone (when `VECTOR_STORE=pinecone`) / local JSON index (fallback)
 - **Auth**: JWT (GitHub OAuth optional)
 - **CI/CD**: GitHub Actions (lint, unit, e2e, deploy)
 - **Deployment**: Docker Compose
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full system design.
+```mermaid
+flowchart LR
+    subgraph FE["Frontend — React SPA"]
+        P["9 pages: Dashboard · Overview · Review · Security · Docs · Tests · Chat · Health · Settings"]
+    end
+    subgraph BE["Backend — FastAPI"]
+        API["REST API v1"]
+        ORC["Agent Orchestrator"]
+        AG["6 AI agents + rule-based Security Audit"]
+    end
+    subgraph EXT["Providers & Storage"]
+        L["LLM: Groq · Hugging Face · NVIDIA · OpenRouter"]
+        D[("MongoDB Atlas / SQLite")]
+        V[("Pinecone / local JSON index")]
+    end
+    FE --> API --> ORC --> AG
+    AG --> L
+    AG --> D
+    AG --> V
+```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full system design and sequence diagrams.
 
 ## Folder structure
 
@@ -168,6 +189,19 @@ GitHub Actions workflows run on every push/PR to `main`:
 | `frontend.yml` | eslint + typecheck + vitest + production build |
 | `test.yml` | Playwright end-to-end suite with HTML report artifacts |
 | `deploy.yml` | Build backend/frontend Docker images on `v*` tags |
+
+```mermaid
+flowchart LR
+    C(["push / PR to main"]) --> BE["backend.yml<br/>ruff lint + format + pytest"]
+    C --> FE["frontend.yml<br/>eslint + tsc + vitest + build"]
+    C --> E["test.yml<br/>Playwright E2E"]
+    BE --> G{"all green?"}
+    FE --> G
+    E --> G
+    G -- yes --> REL["v* tag → deploy.yml<br/>Docker images + Compose"]
+    G -- no --> FIX["fix and re-push"]
+    FIX --> C
+```
 
 ## Docker
 
