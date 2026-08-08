@@ -1,27 +1,6 @@
 # DevPilot AI Architecture
 
-## 1. Project Alignment
-
-DevPilot AI is a production-grade SaaS platform for developer productivity. It is built around:
-- AI-powered repository analysis
-- Code review
-- Documentation generation
-- Test generation
-- Repository contextual chat
-- Project health monitoring
-
-The platform is intentionally not a generic chat interface. It is a workflow-centric developer tool that integrates repository understanding, AI agents, and structured product dashboards.
-
-## 2. Architecture Principles
-
-- Modular service-oriented architecture
-- Single Responsibility Principle for agents and services
-- Low coupling, high cohesion
-- Reusable shared skills and infrastructure
-- Clear separation between frontend, backend, agents, skills, services, and storage
-- Extendable design for Day-2 twists or additional AI agents
-
-## 3. High-Level System Architecture
+## System at a Glance
 
 ```mermaid
 flowchart TB
@@ -81,6 +60,33 @@ flowchart TB
     V3 --> DB
     V1 --> P1 & P2 & P3 & P4
 ```
+
+## 1. Project Alignment
+
+DevPilot AI is a production-grade SaaS platform for developer productivity. It is built around:
+- AI-powered repository analysis
+- Code review
+- Documentation generation
+- Test generation
+- Repository contextual chat
+- Project health monitoring
+
+The platform is intentionally not a generic chat interface. It is a workflow-centric developer tool that integrates repository understanding, AI agents, and structured product dashboards.
+
+## 2. Architecture Principles
+
+- Modular service-oriented architecture
+- Single Responsibility Principle for agents and services
+- Low coupling, high cohesion
+- Reusable shared skills and infrastructure
+- Clear separation between frontend, backend, agents, skills, services, and storage
+- Extendable design for Day-2 twists or additional AI agents
+
+## 3. High-Level System Architecture
+
+See the **System at a Glance** diagram at the top of this document for the
+full component flow (Client → API → Orchestrator → Agents → Skills/Services →
+LLM Providers + Storage).
 
 ### 3.1 Frontend
 

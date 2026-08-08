@@ -4,25 +4,7 @@
 
 DevPilot AI is a modular, production-grade SaaS platform that helps engineering teams analyze repositories, review code, generate documentation and tests, chat with their codebase, and monitor project health.
 
-## Overview
-
-- **Repository Analysis** — upload a ZIP or pull a GitHub repo, parse structure/languages/dependencies, and generate an architecture summary.
-- **Code Review** — run an automated audit with severity-graded findings and fix recommendations.
-- **Documentation & Test Generation** — scaffold markdown manuals and pytest suites.
-- **Repository QA Chat** — contextual question answering over the codebase (vector index).
-- **Project Health** — dynamic documentation, testing, security, maintainability, and complexity scores.
-- **Security Scan** — deep static scan with remediation guidance.
-
-## Architecture
-
-- **Frontend**: React + Vite + TypeScript + TailwindCSS + React Router + Axios + React Query
-- **Backend**: FastAPI + Python + SQLAlchemy + Pydantic V2
-- **AI Core**: 6 specialized agents, backed by multiple LLM providers (Groq, Hugging Face, NVIDIA, OpenRouter) + shared skills + vector query service (Pinecone, with a local JSON fallback for offline RAG)
-- **Database**: MongoDB Atlas (primary, when `MONGODB_URI` is configured) / SQLite (local fallback)
-- **Vector Store**: Pinecone (when `VECTOR_STORE=pinecone`) / local JSON index (fallback)
-- **Auth**: JWT (GitHub OAuth optional)
-- **CI/CD**: GitHub Actions (lint, unit, e2e, deploy)
-- **Deployment**: Docker Compose
+## System at a Glance
 
 ```mermaid
 flowchart LR
@@ -44,6 +26,26 @@ flowchart LR
     AG --> D
     AG --> V
 ```
+
+## Overview
+
+- **Repository Analysis** — upload a ZIP or pull a GitHub repo, parse structure/languages/dependencies, and generate an architecture summary.
+- **Code Review** — run an automated audit with severity-graded findings and fix recommendations.
+- **Documentation & Test Generation** — scaffold markdown manuals and pytest suites.
+- **Repository QA Chat** — contextual question answering over the codebase (vector index).
+- **Project Health** — dynamic documentation, testing, security, maintainability, and complexity scores.
+- **Security Scan** — deep static scan with remediation guidance.
+
+## Architecture
+
+- **Frontend**: React + Vite + TypeScript + TailwindCSS + React Router + Axios + React Query
+- **Backend**: FastAPI + Python + SQLAlchemy + Pydantic V2
+- **AI Core**: 6 specialized agents, backed by multiple LLM providers (Groq, Hugging Face, NVIDIA, OpenRouter) + shared skills + vector query service (Pinecone, with a local JSON fallback for offline RAG)
+- **Database**: MongoDB Atlas (primary, when `MONGODB_URI` is configured) / SQLite (local fallback)
+- **Vector Store**: Pinecone (when `VECTOR_STORE=pinecone`) / local JSON index (fallback)
+- **Auth**: JWT (GitHub OAuth optional)
+- **CI/CD**: GitHub Actions (lint, unit, e2e, deploy)
+- **Deployment**: Docker Compose
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full system design and sequence diagrams.
 
