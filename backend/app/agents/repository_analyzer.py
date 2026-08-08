@@ -62,7 +62,7 @@ class RepositoryAnalyzerAgent(BaseAgent):
         return self.llm.generate(prompt, temperature=0.2, max_tokens=160)
 
     def _index_files(self, root_path: Path) -> list[dict]:
-        source_extensions = {".py", ".ts", ".tsx", ".js", ".jsx", ".java"}
+        source_extensions = {".py", ".ts", ".tsx", ".js", ".jsx", ".java", ".ipynb"}
         files = []
         for path in root_path.rglob("*"):
             if path.is_file() and not any(part in path.parts for part in IGNORED_DIRECTORIES):

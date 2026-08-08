@@ -24,6 +24,7 @@ LANGUAGE_EXTENSIONS = {
     ".yml": "YAML",
     ".html": "HTML",
     ".css": "CSS",
+    ".ipynb": "Jupyter Notebook",
 }
 
 FRAMEWORK_KEYWORDS = {

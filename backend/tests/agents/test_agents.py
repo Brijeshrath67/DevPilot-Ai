@@ -47,6 +47,26 @@ def test_orchestrator_raises_for_unknown_agent():
     assert raised
 
 
+def test_all_agents_registered():
+    orchestrator = AgentOrchestrator(
+        llm_service=MagicMock(),
+        parser_service=MagicMock(),
+        embedding_service=MagicMock(),
+        vector_service=MagicMock(),
+        github_service=MagicMock(),
+        database_service=MagicMock(),
+    )
+    assert set(orchestrator.agents) == {
+        "repository_analyzer",
+        "code_review",
+        "documentation",
+        "testing",
+        "repository_chat",
+        "project_health",
+        "security",
+    }
+
+
 def test_security_agent_returns_100_when_no_repo():
     database_service = MagicMock()
     database_service.get_repository.return_value = None

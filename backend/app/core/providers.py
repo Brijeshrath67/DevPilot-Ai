@@ -1,7 +1,7 @@
 """Multi-provider LLM routing.
 
-Each specialized agent is backed by a distinct LLM provider. All six providers
-(Groq, Hugging Face, Mistral, NVIDIA, OpenRouter, Cerebras) expose an
+Each specialized agent is backed by a distinct LLM provider. All five providers
+(Groq, Hugging Face, Mistral, NVIDIA, OpenRouter) expose an
 OpenAI-compatible chat completions endpoint, so ``LLMService`` can drive them
 all. This module builds a per-provider ``LLMService`` from settings and resolves
 the provider assigned to each agent.
@@ -25,7 +25,6 @@ DEFAULT_MODELS = {
     "mistral": "mistral-large-latest",
     "nvidia": "meta/llama-3.3-70b-instruct",
     "openrouter": "openai/gpt-4o-mini",
-    "cerebras": "gpt-oss-120b",
     "huggingface": "meta-llama/Llama-3.3-70B-Instruct",
 }
 
@@ -34,7 +33,6 @@ DEFAULT_BASE_URLS = {
     "mistral": "https://api.mistral.ai/v1",
     "nvidia": "https://integrate.api.nvidia.com/v1",
     "openrouter": "https://openrouter.ai/api/v1",
-    "cerebras": "https://api.cerebras.ai/v1",
     "huggingface": "https://router.huggingface.co/v1",
 }
 

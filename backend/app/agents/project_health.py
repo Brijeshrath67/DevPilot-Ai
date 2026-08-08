@@ -7,7 +7,7 @@ from app.skills.reporting_skill import ReportingSkill
 
 
 class ProjectHealthAgent(BaseAgent):
-    """Computes health scores; uses the routed LLM (Cerebras) for insights."""
+    """Computes health scores; uses the routed LLM (OpenRouter) for insights."""
 
     def __init__(self, database_service: DatabaseService, llm: Any = None) -> None:
         self.database_service = database_service

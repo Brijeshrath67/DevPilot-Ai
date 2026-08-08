@@ -67,12 +67,45 @@ def test_full_repository_workflow(client, ingested_repo):
     assert "README.md" in paths
 
 
+def test_file_content_endpoint(client, ingested_repo):
+    response = client.get(f"/api/v1/repos/{ingested_repo}/files/content", params={"path": "src/calculator.py"})
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["file_path"] == "src/calculator.py"
+    assert "def" in payload["content"]
+
+
+def test_file_content_endpoint_missing_file(client, ingested_repo):
+    response = client.get(f"/api/v1/repos/{ingested_repo}/files/content", params={"path": "nope/missing.py"})
+    assert response.status_code == 404
+
+
+def test_file_content_endpoint_rejects_path_traversal(client, ingested_repo):
+    response = client.get(f"/api/v1/repos/{ingested_repo}/files/content", params={"path": "../../etc/passwd"})
+    assert response.status_code == 400
+
+
+def test_file_content_endpoint_unknown_repo(client):
+    response = client.get("/api/v1/repos/99999/files/content", params={"path": "README.md"})
+    assert response.status_code == 404
+
+
 def test_code_review_endpoint(client, ingested_repo):
     response = client.post(f"/api/v1/repos/{ingested_repo}/code-review", json={"review_scope": "full"})
     assert response.status_code == 200
     payload = response.json()["data"]
     assert "issues" in payload
     assert "recommendations" in payload
+
+
+def test_security_audit_endpoint_with_review_scope(client, ingested_repo):
+    response = client.post(f"/api/v1/repos/{ingested_repo}/security", json={"review_scope": "full"})
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert "issues" in payload
+    assert "recommendations" in payload
+    assert "files_scanned" in payload
+    assert "patterns_checked" in payload
 
 
 def test_documentation_endpoint(client, ingested_repo):
@@ -85,6 +118,25 @@ def test_documentation_endpoint(client, ingested_repo):
     assert len(documents) == 1
     assert documents[0]["type"] == "readme"
     assert documents[0]["content"]
+
+
+def test_documentation_pdf_endpoint(client, ingested_repo):
+    response = client.post(
+        f"/api/v1/repos/{ingested_repo}/documentation/pdf",
+        json={"title": "Sample Repo — README", "markdown": "# Overview\n\nHello **world**."},
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert "attachment" in response.headers.get("content-disposition", "")
+    assert response.content.startswith(b"%PDF")
+
+
+def test_documentation_pdf_endpoint_unknown_repo(client):
+    response = client.post(
+        "/api/v1/repos/99999/documentation/pdf",
+        json={"title": "Docs", "markdown": "# Hi"},
+    )
+    assert response.status_code == 404
 
 
 def test_tests_endpoint(client, ingested_repo):

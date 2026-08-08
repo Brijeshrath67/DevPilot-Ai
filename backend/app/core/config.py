@@ -39,10 +39,6 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_model: str = "openai/gpt-4o-mini"
 
-    cerebras_api_key: str = ""
-    cerebras_base_url: str = "https://api.cerebras.ai/v1"
-    cerebras_model: str = "gpt-oss-120b"
-
     huggingface_api_key: str = ""
     huggingface_base_url: str = "https://router.huggingface.co/v1"
     huggingface_model: str = "meta-llama/Llama-3.3-70B-Instruct"
@@ -51,10 +47,10 @@ class Settings(BaseSettings):
     agent_llm_providers: dict[str, str] = {
         "repository_analyzer": "groq",
         "code_review": "huggingface",
-        "documentation": "mistral",
+        "documentation": "groq",
         "testing": "nvidia",
         "repository_chat": "openrouter",
-        "project_health": "cerebras",
+        "project_health": "openrouter",
     }
 
     cors_origins: list[str] = ["*"]

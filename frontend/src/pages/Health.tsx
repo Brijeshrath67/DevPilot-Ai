@@ -1,180 +1,128 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import api from "../lib/api";
-import Sidebar from "../components/common/Sidebar";
-import Header from "../components/common/Header";
+import { HeartPulse, RefreshCw } from "lucide-react";
+import { PageHeader } from "../components/features/PageHeader";
+import { AnalyzeGate } from "../components/features/AnalyzeGate";
+import { RecommendationsList } from "../components/features/RecommendationsList";
+import { RepoStatusBadge } from "../components/repository/RepoStatusBadge";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { ScoreRing } from "../components/ui/ScoreRing";
+import { ScoreBar } from "../components/ui/ScoreBar";
+import { SkeletonLines } from "../components/ui/Skeleton";
+import { useRepository } from "../hooks/useRepository";
+import { useRepoStatus, isProcessing } from "../hooks/useRepoStatus";
+import { useProjectHealth } from "../hooks/useFeatureActions";
+import { useToast } from "../components/ui/Toast";
+import { scoreVerdict } from "../lib/utils";
+import type { HealthResult } from "../types/api";
 
-const METRICS = [
-  { key: "documentation_score", label: "Documentation", icon: "📄", color: "from-sky-500 to-blue-600", trackColor: "#0ea5e9" },
-  { key: "testing_score", label: "Testing", icon: "🧪", color: "from-emerald-500 to-teal-600", trackColor: "#10b981" },
-  { key: "security_score", label: "Security", icon: "🛡️", color: "from-rose-500 to-red-600", trackColor: "#f43f5e" },
-  { key: "maintainability_score", label: "Maintainability", icon: "⚙️", color: "from-violet-500 to-purple-600", trackColor: "#8b5cf6" },
-  { key: "complexity_score", label: "Complexity", icon: "🔀", color: "from-amber-500 to-orange-600", trackColor: "#f59e0b" },
+const DIMENSIONS: Array<{ key: keyof HealthResult; label: string; hint: string }> = [
+  { key: "documentation_score", label: "Documentation", hint: "Coverage of docs & inline comments" },
+  { key: "testing_score", label: "Testing", hint: "Presence and breadth of test suites" },
+  { key: "security_score", label: "Security", hint: "Exposure to vulnerabilities and risky patterns" },
+  { key: "maintainability_score", label: "Maintainability", hint: "Structure, conventions, and readability" },
+  { key: "complexity_score", label: "Complexity", hint: "Cyclomatic complexity of the codebase" },
 ];
 
-function ScoreDial({ value, color: _color, trackColor }: { value: number; color: string; trackColor: string }) {
-  const r = 40;
-  const circumference = 2 * Math.PI * r;
-  const dashOffset = circumference - (value / 100) * circumference;
-
-  return (
-    <div className="relative w-24 h-24 mx-auto">
-      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="#1e293b" strokeWidth="10" />
-        <circle
-          cx="50" cy="50" r={r}
-          fill="none" stroke={trackColor} strokeWidth="10"
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
-          strokeLinecap="round"
-          className="transition-all duration-700"
-          style={{ filter: `drop-shadow(0 0 6px ${trackColor}60)` }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-xl font-extrabold text-white">{Math.round(value)}</span>
-      </div>
-    </div>
-  );
-}
-
-export default function Health() {
+export function HealthPage() {
   const { repoId } = useParams();
-  const queryClient = useQueryClient();
+  const { error: toastError } = useToast();
+  const repoQuery = useRepository(repoId);
+  const { status, isLoading: statusLoading } = useRepoStatus(repoId);
+  const health = useProjectHealth(repoId);
 
-  const { data: healthData, isLoading } = useQuery(
-    ["health", repoId],
-    async () => {
-      const res = await api.get(`/repos/${repoId}/health`);
-      return res.data;
-    },
-    { enabled: Boolean(repoId) }
-  );
+  const [result, setResult] = useState<HealthResult | null>(null);
 
-  const securityMutation = useMutation(
-    async () => {
-      const res = await api.post(`/repos/${repoId}/security`);
-      return res.data;
-    },
-    {
-      onSuccess: () => queryClient.invalidateQueries(["health", repoId]),
-    }
-  );
+  const repo = repoQuery.data?.data;
+  const loading = repoQuery.isLoading || statusLoading;
 
-  const health = healthData?.data;
-
-  const getGrade = (score: number) => {
-    if (score >= 90) return { grade: "A+", color: "text-emerald-400" };
-    if (score >= 80) return { grade: "A", color: "text-emerald-400" };
-    if (score >= 70) return { grade: "B", color: "text-sky-400" };
-    if (score >= 60) return { grade: "C", color: "text-amber-400" };
-    return { grade: "D", color: "text-rose-400" };
+  const check = () => {
+    health.mutate(undefined, {
+      onSuccess: (res) => setResult(res.data),
+      onError: (err) => toastError(err instanceof Error ? err.message : "Health check failed."),
+    });
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex">
-      <Sidebar />
-      <div className="flex-1 flex flex-col">
-        <Header />
-        <main className="flex-1 p-8 space-y-6 max-w-5xl w-full mx-auto">
+    <div className="space-y-6">
+      <PageHeader
+        title="Project health"
+        description="A multi-dimensional health score derived from documentation, testing, security, maintainability, and complexity."
+        icon={<HeartPulse className="h-5 w-5" />}
+        badge={repo ? <RepoStatusBadge status={status ?? repo.status} /> : undefined}
+        actions={
+          <Button
+            size="sm"
+            variant="secondary"
+            icon={<RefreshCw className="h-3.5 w-3.5" />}
+            onClick={check}
+            loading={health.isPending}
+          >
+            {result ? "Re-check health" : "Check health"}
+          </Button>
+        }
+      />
 
-          {/* Header */}
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-7 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-extrabold text-white flex items-center gap-3">❤️ Project Health</h1>
-              <p className="text-sm text-slate-400 mt-1">Live scorecards across key quality dimensions.</p>
+      {loading ? (
+        <Card className="p-5">
+          <SkeletonLines lines={5} />
+        </Card>
+      ) : !repo ? (
+        <Card className="p-4">
+          <p className="py-10 text-center text-sm text-ink-3">Repository not found.</p>
+        </Card>
+      ) : isProcessing(status) ? (
+        <Card className="p-5">
+          <p className="py-8 text-center text-sm text-ink-3">Workspace is still being analyzed — wait for analysis to finish.</p>
+        </Card>
+      ) : status !== "analyzed" ? (
+        <AnalyzeGate repoId={repoId!} />
+      ) : !result ? (
+        <Card className="p-8">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-accent/10 text-accent">
+              <HeartPulse className="h-5 w-5" />
             </div>
-            <div className="flex gap-3 flex-wrap">
-              <button
-                onClick={() => queryClient.invalidateQueries(["health", repoId])}
-                className="text-xs font-semibold text-slate-400 hover:text-slate-200 border border-slate-700 px-4 py-2 rounded-xl transition-all"
-              >
-                Refresh
-              </button>
-              <button
-                onClick={() => securityMutation.mutate()}
-                disabled={securityMutation.isLoading}
-                className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white font-semibold py-2 px-5 rounded-xl text-sm transition-all shadow-lg shadow-rose-500/10 flex items-center gap-2 disabled:opacity-60"
-              >
-                {securityMutation.isLoading ? (
-                  <><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Scanning...</>
-                ) : "🔍 Run Security Scan"}
-              </button>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-ink">No health report yet</p>
+              <p className="mx-auto max-w-sm text-xs leading-relaxed text-ink-3">
+                Run a health check to see a scored report across the five quality dimensions.
+              </p>
             </div>
+            <Button size="sm" icon={<RefreshCw className="h-3.5 w-3.5" />} onClick={check} loading={health.isPending}>
+              Check health
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <div className="animate-fade-in-up space-y-4">
+          <div className="grid gap-3 lg:grid-cols-3">
+            <Card className="flex items-center justify-center p-6">
+              <ScoreRing
+                value={result.overall_score}
+                size={170}
+                label="Overall"
+                sublabel={scoreVerdict(result.overall_score)}
+              />
+            </Card>
+
+            <Card className="p-5 lg:col-span-2">
+              <h2 className="mb-4 text-sm font-semibold text-ink">Score breakdown</h2>
+              <div className="space-y-4">
+                {DIMENSIONS.map((dimension) => (
+                  <div key={dimension.key}>
+                    <ScoreBar label={dimension.label} value={result[dimension.key] as number} />
+                    <p className="mt-0.5 text-2xs text-ink-3">{dimension.hint}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-32">
-              <div className="w-10 h-10 border-4 border-pink-500/20 border-t-pink-500 rounded-full animate-spin"></div>
-            </div>
-          ) : health ? (
-            <>
-              {/* Overall Score Banner */}
-              <div className="bg-gradient-to-r from-slate-900 via-indigo-950/30 to-slate-900 border border-slate-800 rounded-3xl p-8 flex flex-col sm:flex-row items-center gap-6 shadow-xl">
-                <div className="w-32 h-32 mx-auto sm:mx-0 relative">
-                  <ScoreDial value={health.overall_score ?? 0} color="from-sky-500 to-indigo-600" trackColor="#6366f1" />
-                </div>
-                <div className="text-center sm:text-left">
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Overall Health Score</p>
-                  <div className="text-6xl font-extrabold text-white">{Math.round(health.overall_score ?? 0)}</div>
-                  <div className={`text-xl font-bold mt-1 ${getGrade(health.overall_score ?? 0).color}`}>
-                    Grade {getGrade(health.overall_score ?? 0).grade}
-                  </div>
-                </div>
-              </div>
-
-              {/* Score Cards Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                {METRICS.map((m) => {
-                  const score = health[m.key] ?? 0;
-                  const { grade, color } = getGrade(score);
-                  return (
-                    <div key={m.key} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col items-center gap-3 hover:border-slate-700 transition-all shadow-md">
-                      <ScoreDial value={score} color={m.color} trackColor={m.trackColor} />
-                      <div className="text-center space-y-0.5">
-                        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{m.label}</div>
-                        <div className={`text-sm font-bold ${color}`}>Grade {grade}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Recommendations */}
-              {health.recommendations && health.recommendations.length > 0 && (
-                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl">
-                  <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                    📋 Action Items
-                    <span className="text-xs text-slate-500 font-normal ml-1">{health.recommendations.length} items</span>
-                  </h2>
-                  <div className="space-y-3">
-                    {health.recommendations.map((rec: string, i: number) => {
-                      const isCritical = rec.startsWith("CRITICAL");
-                      const isHigh = rec.startsWith("HIGH");
-                      return (
-                        <div key={i} className={`flex items-start gap-3 p-4 rounded-xl border text-sm ${
-                          isCritical
-                            ? "bg-rose-500/5 border-rose-500/20 text-rose-300"
-                            : isHigh
-                              ? "bg-orange-500/5 border-orange-500/20 text-orange-300"
-                              : "bg-slate-800/50 border-slate-700/50 text-slate-300"
-                        }`}>
-                          <span>{isCritical ? "🚨" : isHigh ? "⚠️" : "ℹ️"}</span>
-                          <span>{rec}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="py-20 text-center text-slate-500 text-sm border-2 border-dashed border-slate-800 rounded-3xl">
-              Run analysis first to compute health metrics.
-            </div>
-          )}
-        </main>
-      </div>
+          <RecommendationsList recommendations={result.recommendations} />
+        </div>
+      )}
     </div>
   );
 }

@@ -10,9 +10,19 @@ class CodeReviewRequest(BaseModel):
     review_scope: str = "full"
 
 
+class SecurityAuditRequest(BaseModel):
+    files: list[str] | None = None
+    review_scope: str = "full"
+
+
 class DocumentationRequest(BaseModel):
     doc_types: list[str]
     target_files: list[str] | None = None
+
+
+class DocumentationPdfRequest(BaseModel):
+    title: str = "Documentation"
+    markdown: str
 
 
 class TestsRequest(BaseModel):

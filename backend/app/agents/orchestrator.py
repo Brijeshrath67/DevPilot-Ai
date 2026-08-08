@@ -22,8 +22,8 @@ from app.skills.rag_skill import RAGSkill
 class AgentOrchestrator:
     """Routes task types to registered specialized agents.
 
-    Each of the six AI agents is bound to a distinct LLM provider (Groq,
-    Hugging Face, Mistral, NVIDIA, OpenRouter, Cerebras) resolved through
+    Each of the six AI agents is bound to an LLM provider (Groq,
+    Hugging Face, Mistral, NVIDIA, OpenRouter) resolved through
     :class:`LLMProviderRegistry`. The seventh (``security``) is rule-based.
     """
 

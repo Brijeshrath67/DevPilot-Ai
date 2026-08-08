@@ -49,13 +49,13 @@ User → React Frontend → FastAPI Backend → AI Orchestrator → Specialized 
   3. Documentation Agent → Mistral
   4. Testing Agent → NVIDIA
   5. Repository Chat Agent → OpenRouter
-  6. Project Health Agent → Cerebras
+  6. Project Health Agent → OpenRouter
   7. Security Audit Agent (rule-based)
 - One orchestrator controls routing and request validation
 - Agents never communicate directly with each other
 - Shared skills provide common logic and data access
-- A provider registry (`backend/app/core/providers.py`) binds each agent to a
-  distinct OpenAI-compatible LLM endpoint; missing keys degrade gracefully to a
+- A provider registry (`backend/app/core/providers.py`) binds each agent to an
+  OpenAI-compatible LLM endpoint; missing keys degrade gracefully to a
   single fallback key (`AI_API_KEY`)
 
 ### 3.4 Shared Skills and Services
@@ -175,7 +175,7 @@ README.md
 - `Parser Service` - repository file parsing, AST extraction, dependency graph
 - `Embedding Service` - text embedding generation and storage
 - `Vector Service` - Pinecone operations for RAG retrieval (local JSON index fallback)
-- `LLM Service` - OpenAI-compatible chat client driving Groq, Hugging Face, Mistral, NVIDIA, OpenRouter, and Cerebras endpoints
+- `LLM Service` - OpenAI-compatible chat client driving Groq, Hugging Face, Mistral, NVIDIA, and OpenRouter endpoints
 - `Database Service` - persistence layer and repository pattern
 - `Documentation Service` - generation, templating, formatting
 - `Testing Service` - test case scaffolding and coverage analysis
@@ -191,6 +191,8 @@ README.md
 - `POST /api/v1/repos/{repo_id}/documentation` - generate docs artifacts
 - `POST /api/v1/repos/{repo_id}/tests` - generate unit/integration tests
 - `POST /api/v1/repos/{repo_id}/chat` - repository QA chat endpoint
+- `GET /api/v1/repos/{repo_id}/files` - list indexed file metadata
+- `GET /api/v1/repos/{repo_id}/files/content?path=...` - fetch raw file content for preview
 - `GET /api/v1/repos/{repo_id}/health` - get project health dashboard data
 - `GET /api/v1/repos/{repo_id}/status` - current analysis task state
 

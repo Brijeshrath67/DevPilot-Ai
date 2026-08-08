@@ -18,5 +18,5 @@ class DocumentationAgent(BaseAgent):
         if not repository:
             return {"error": "Repository not found"}
 
-        documents = self.documentation_service.generate(doc_types, target_files)
+        documents = self.documentation_service.generate(doc_types, target_files, repository=repository)
         return {"documents": documents}

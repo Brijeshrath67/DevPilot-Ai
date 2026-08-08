@@ -68,6 +68,22 @@ class TestVectorService:
         service = VectorService(index_path=tmp_path / "empty.json")
         assert service.query_vectors("anything") == []
 
+    def test_irrelevant_question_returns_empty(self, tmp_path):
+        service = VectorService(index_path=tmp_path / "index.json")
+        service.upsert_vectors(
+            [
+                {
+                    "id": "f1",
+                    "vector": [0.0],
+                    "text": "The FastAPI app exposes a health endpoint for the calculator service.",
+                    "metadata": {"repository_id": "1", "file_path": "main.py"},
+                }
+            ]
+        )
+
+        assert service.query_vectors("Explain the difference between TCP and UDP", top_k=5) == []
+        assert service.query_vectors("what is it doing", top_k=5) == []
+
     def test_upsert_deduplicates(self, tmp_path):
         service = VectorService(index_path=tmp_path / "index.json")
         item = {"id": "a", "vector": [0.0], "text": "text", "metadata": {}}

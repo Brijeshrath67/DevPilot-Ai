@@ -11,6 +11,90 @@ logger = get_logger(__name__)
 
 INDEX_PATH = EMBEDDINGS_DIR / "vector_index.json"
 
+STOP_WORDS = {
+    "a",
+    "an",
+    "and",
+    "are",
+    "as",
+    "at",
+    "be",
+    "been",
+    "being",
+    "but",
+    "by",
+    "can",
+    "could",
+    "did",
+    "do",
+    "does",
+    "else",
+    "for",
+    "from",
+    "had",
+    "has",
+    "have",
+    "how",
+    "i",
+    "if",
+    "in",
+    "into",
+    "is",
+    "it",
+    "its",
+    "may",
+    "me",
+    "might",
+    "must",
+    "my",
+    "no",
+    "not",
+    "of",
+    "on",
+    "or",
+    "our",
+    "over",
+    "shall",
+    "should",
+    "so",
+    "than",
+    "that",
+    "the",
+    "their",
+    "them",
+    "then",
+    "there",
+    "these",
+    "they",
+    "this",
+    "those",
+    "to",
+    "under",
+    "us",
+    "was",
+    "we",
+    "were",
+    "what",
+    "when",
+    "where",
+    "which",
+    "who",
+    "whom",
+    "why",
+    "will",
+    "with",
+    "would",
+    "you",
+    "your",
+}
+
+MIN_CONTENT_OVERLAP_RATIO = 0.3
+
+
+def _content_tokens(text: str) -> set[str]:
+    return {token for token in text.lower().split() if token.isalpha() and len(token) >= 3 and token not in STOP_WORDS}
+
+
 try:  # pragma: no cover - optional dependency
     from pinecone import Pinecone
 
@@ -131,22 +215,27 @@ class VectorService:
         if not self.data:
             return []
 
-        query_words = set(query.lower().split())
+        query_words = _content_tokens(query)
+        if not query_words:
+            return []
+
         results = []
         for entry in self.data:
             text = entry["text"].lower()
-            score = 0.0
             overlap = 0
             for word in query_words:
                 if word in text:
                     overlap += 1
-            if query_words:
-                score += (overlap / len(query_words)) * 10.0
-            results.append((entry, score))
+            ratio = overlap / len(query_words)
+            results.append((entry, ratio))
 
         results.sort(key=lambda x: x[1], reverse=True)
-        return [
-            {"id": r[0]["id"], "text": r[0]["text"], "metadata": r[0]["metadata"], "score": r[1]}
-            for r in results[:top_k]
-            if r[1] > 0
-        ]
+        top = []
+        for entry, ratio in results:
+            if ratio >= MIN_CONTENT_OVERLAP_RATIO:
+                top.append(
+                    {"id": entry["id"], "text": entry["text"], "metadata": entry["metadata"], "score": ratio * 10.0}
+                )
+            if len(top) >= top_k:
+                break
+        return top

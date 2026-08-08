@@ -7,7 +7,7 @@ from app.core.providers import DEFAULT_BASE_URLS, DEFAULT_MODELS, LLMProviderReg
 class TestLLMProviderRegistry:
     def test_all_providers_resolve(self):
         registry = LLMProviderRegistry(Settings())
-        providers = ["groq", "mistral", "nvidia", "openrouter", "cerebras", "huggingface"]
+        providers = ["groq", "mistral", "nvidia", "openrouter", "huggingface"]
         services = {name: registry.get_service(name) for name in providers}
 
         for name in providers:
@@ -17,15 +17,14 @@ class TestLLMProviderRegistry:
             assert service.api_url == DEFAULT_BASE_URLS[name]
 
     def test_default_models_match_documented_providers(self):
-        assert len(DEFAULT_MODELS) == 6
-        assert len(DEFAULT_BASE_URLS) == 6
+        assert len(DEFAULT_MODELS) == 5
+        assert len(DEFAULT_BASE_URLS) == 5
         assert set(DEFAULT_MODELS) == set(DEFAULT_BASE_URLS)
 
-    def test_every_agent_has_a_distinct_provider(self):
+    def test_every_agent_has_a_registered_provider(self):
         settings = Settings()
         mapping = settings.agent_llm_providers
         assert len(mapping) == 6
-        assert len(set(mapping.values())) == 6
         assert set(mapping.values()) <= set(DEFAULT_MODELS)
 
     def test_service_for_agent_routes_to_provider(self):
@@ -33,6 +32,10 @@ class TestLLMProviderRegistry:
         registry = LLMProviderRegistry(settings)
         service = registry.service_for_agent("documentation")
         assert service.provider == settings.agent_llm_providers["documentation"]
+
+    def test_project_health_routes_to_openrouter(self):
+        registry = LLMProviderRegistry(Settings())
+        assert registry.service_for_agent("project_health").provider == "openrouter"
 
     def test_provider_api_key_falls_back_to_generic_key(self):
         settings = Settings(ai_api_key="generic_key")

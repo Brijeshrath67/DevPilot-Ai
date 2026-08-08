@@ -44,7 +44,7 @@ commits; see the git history for the progressive record.
   - Documentation → Mistral
   - Testing → NVIDIA
   - Repository Chat → OpenRouter
-  - Project Health → Cerebras
+  - Project Health → OpenRouter
 - [x] Every LLM path falls back to rule-based logic on `mock_key`.
 
 ## Phase 4 — Documentation & Deliverables

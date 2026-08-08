@@ -40,8 +40,8 @@ into the live application.
 
 ## 2. Custom Agents
 
-DevPilot AI ships **seven** agents. Six are AI agents, each bound to a **distinct
-LLM provider** via the provider registry (`backend/app/core/providers.py`); the
+DevPilot AI ships **seven** agents. Six are AI agents, each bound to an **LLM
+provider** via the provider registry (`backend/app/core/providers.py`); the
 seventh is a pure rule-based security auditor.
 
 ### 2.1 Repository Analyzer Agent → Groq
@@ -80,12 +80,12 @@ seventh is a pure rule-based security auditor.
   context from the vector store and answer through OpenRouter, returning
   `answer` + `provenance` citations.
 
-### 2.6 Project Health Agent → Cerebras
+### 2.6 Project Health Agent → OpenRouter
 
 - **File Path**: `backend/app/agents/project_health.py`
 - **Purpose**: Computes documentation/testing/security/maintainability/complexity
   scores plus an overall score, persists them, and returns recommendations. When
-  a real Cerebras key is configured, the LLM supplements rule-based
+  a real OpenRouter key is configured, the LLM supplements rule-based
   recommendations with concrete improvement bullets.
 
 ### 2.7 Security Audit Agent (rule-based, custom)
@@ -113,7 +113,7 @@ seventh is a pure rule-based security auditor.
 | Documentation | Mistral | `https://api.mistral.ai/v1` |
 | Testing | NVIDIA | `https://integrate.api.nvidia.com/v1` |
 | Repository Chat | OpenRouter | `https://openrouter.ai/api/v1` |
-| Project Health | Cerebras | `https://api.cerebras.ai/v1` |
+| Project Health | OpenRouter | `https://openrouter.ai/api/v1` |
 
 Routing is centralized in `backend/app/core/providers.py` (the
 `LLMProviderRegistry`) and driven by `settings.agent_llm_providers`. Any missing

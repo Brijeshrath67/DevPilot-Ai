@@ -100,7 +100,7 @@ documentation, testing, security, maintainability, and complexity."
 **Acceptance criteria**:
 - `GET /api/v1/repos/{repo_id}/health` returns five sub-scores, an
   `overall_score`, and `recommendations`.
-- Scores are persisted and deterministic; Project Health Agent uses **Cerebras**
+- Scores are persisted and deterministic; Project Health Agent uses **OpenRouter**
   to supplement recommendations when a real key is present.
 
 ### FR8 — Security Audit
@@ -117,8 +117,8 @@ documentation, testing, security, maintainability, and complexity."
 and fall back gracefully when a key is missing."
 
 **Acceptance criteria**:
-- Six agents map to six providers (Groq, Hugging Face, Mistral, NVIDIA, OpenRouter,
-  Cerebras) via `settings.agent_llm_providers`.
+- Six agents map to providers (Groq, Hugging Face, Mistral, NVIDIA, OpenRouter)
+  via `settings.agent_llm_providers`.
 - Missing provider keys fall back to `AI_API_KEY` (default `mock_key`).
 - All workflows remain fully functional offline with a single mock key.
 

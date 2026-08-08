@@ -17,7 +17,7 @@ for _provider_key in [
     "MISTRAL_API_KEY",
     "NVIDIA_API_KEY",
     "OPENROUTER_API_KEY",
-    "CEREBRAS_API_KEY",
+    "HUGGINGFACE_API_KEY",
 ]:
     os.environ[_provider_key] = ""
 
@@ -33,6 +33,17 @@ for stale in [TEST_DB_PATH, TEST_DATA_ROOT]:
 import pytest
 from app.main import app
 from fastapi.testclient import TestClient
+
+
+@pytest.fixture(scope="session", autouse=True)
+def offline_llm() -> None:
+    """Fail LLM HTTP calls instantly so tests never touch the real network."""
+    import httpx
+
+    def _fail_fast(*args, **kwargs):
+        raise httpx.ConnectError("offline test environment")
+
+    httpx.post = _fail_fast
 
 
 @pytest.fixture(scope="session")

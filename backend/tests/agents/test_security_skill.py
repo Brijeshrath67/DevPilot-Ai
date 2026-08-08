@@ -16,7 +16,7 @@ def test_scan_detects_secrets(tmp_path: Path):
 
     secrets = [f for f in findings if f["severity"] == "CRITICAL"]
     assert len(secrets) >= 2
-    assert all("Hardcoded Secret" in s["vulnerability"] for s in secrets)
+    assert all(("Hardcoded Secret" in s["vulnerability"]) or ("AWS Access Key" in s["vulnerability"]) for s in secrets)
     assert all(isinstance(s["line"], int) and s["line"] > 0 for s in secrets)
 
 

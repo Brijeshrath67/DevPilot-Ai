@@ -1,10 +1,14 @@
+import re
+
 from app.agents.orchestrator import AgentOrchestrator
 from app.core.config import settings
 from app.schemas.repo import (
     AnalyzeRepositoryRequest,
     ChatRequest,
     CodeReviewRequest,
+    DocumentationPdfRequest,
     DocumentationRequest,
+    SecurityAuditRequest,
     TestsRequest,
 )
 from app.services.database_service import DatabaseService
@@ -12,9 +16,10 @@ from app.services.embedding_service import EmbeddingService
 from app.services.github_service import GitHubService
 from app.services.llm_service import LLMService
 from app.services.parser_service import ParserService
+from app.services.pdf_service import PdfService
 from app.services.repository_storage_service import RepositoryStorageService
 from app.services.vector_service import VectorService
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
 
 router = APIRouter(prefix="/repos", tags=["repositories"])
 
@@ -141,6 +146,25 @@ def generate_documentation(repo_id: str, payload: DocumentationRequest):
     return {"status": "success", "data": response}
 
 
+@router.post("/{repo_id}/documentation/pdf")
+def export_documentation_pdf(repo_id: str, payload: DocumentationPdfRequest):
+    from urllib.parse import quote
+
+    repository = database_service.get_repository(int(repo_id))
+    if not repository:
+        raise HTTPException(status_code=404, detail="Repository not found")
+
+    pdf_bytes = PdfService().markdown_to_pdf(payload.title, payload.markdown)
+    slug = re.sub(r"[^a-z0-9]+", "-", payload.title.lower()).strip("-")
+    filename = f"{slug or 'documentation'}.pdf"
+    encoded = quote(filename)
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=\"{filename}\"; filename*=UTF-8''{encoded}"},
+    )
+
+
 @router.post("/{repo_id}/tests")
 def generate_tests(repo_id: str, payload: TestsRequest):
     response = orchestrator.route(
@@ -164,8 +188,15 @@ def repository_health(repo_id: str):
 
 
 @router.post("/{repo_id}/security")
-def security_audit(repo_id: str):
-    response = orchestrator.route("security", {"repository_id": repo_id})
+def security_audit(repo_id: str, payload: SecurityAuditRequest | None = None):
+    response = orchestrator.route(
+        "security",
+        {
+            "repository_id": repo_id,
+            "files": payload.files if payload else None,
+            "review_scope": payload.review_scope if payload else "full",
+        },
+    )
     return {"status": "success", "data": response}
 
 
@@ -198,3 +229,20 @@ def get_repository_files(repo_id: str):
             for f in files
         ],
     }
+
+
+@router.get("/{repo_id}/files/content")
+def get_repository_file_content(repo_id: str, path: str):
+    repository = database_service.get_repository(int(repo_id))
+    if not repository:
+        raise HTTPException(status_code=404, detail="Repository not found")
+
+    try:
+        root = storage_service.resolve_repository_root(int(repo_id), repository.root_path)
+        content = storage_service.read_repository_file(root, path)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=f"File not found: {path}") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return {"status": "success", "data": {"file_path": path, "content": content}}
