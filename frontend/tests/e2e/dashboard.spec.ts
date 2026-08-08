@@ -21,14 +21,21 @@ function buildSampleZip() {
 async function ingestSampleRepository(page: Page): Promise<string> {
   buildSampleZip();
   await page.goto("/");
-  await page.getByPlaceholder("e.g. My Awesome WebApp").fill("E2E Sample Repo");
 
-  await page.getByRole("button", { name: "ZIP File" }).click();
+  // Open the import modal, switch to ZIP upload, name the workspace and submit.
+  await page.getByRole("button", { name: "New workspace" }).first().click();
+  await page.getByRole("tab", { name: "ZIP upload" }).click();
+  await page.getByPlaceholder("Auto-derived from the archive").fill("E2E Sample Repo");
   await page.setInputFiles('input[type="file"]', SAMPLE_ZIP);
-  await page.getByRole("button", { name: "Ingest & Analyze" }).click();
+  await page.getByRole("button", { name: "Create workspace" }).click();
 
-  // The dashboard redirects to the workspace once analysis completes.
+  // The overview page opens after the archive is stored.
   await page.waitForURL(/\/repo\/\d+/, { timeout: 60_000 });
+
+  // Run the analysis to index files and generate the project summary.
+  await page.getByRole("button", { name: "Run analysis", exact: true }).click();
+  await expect(page.getByText("Project summary")).toBeVisible({ timeout: 60_000 });
+
   const match = page.url().match(/\/repo\/(\d+)/);
   expect(match).not.toBeNull();
   return match![1];
@@ -39,12 +46,7 @@ test.describe("DevPilot AI end-to-end", () => {
     const repoId = await ingestSampleRepository(page);
 
     await expect(page.locator("h1", { hasText: "E2E Sample Repo" })).toBeVisible();
-    await expect(page.getByText(/E2E Sample Repo contains \d+ source files/)).toBeVisible();
-
-    const files = await page.getByText(/Run analysis to index files/).count();
-    if (files === 0) {
-      await expect(page.getByText("src/calculator.py")).toBeVisible();
-    }
+    await expect(page.getByText("calculator.py").first()).toBeVisible();
     expect(parseInt(repoId, 10)).toBeGreaterThan(0);
   });
 
@@ -52,28 +54,31 @@ test.describe("DevPilot AI end-to-end", () => {
     await ingestSampleRepository(page);
 
     await page.getByText("Code Review").first().click();
-    await page.getByRole("button", { name: "Run Code Review" }).click();
+    await page.getByRole("button", { name: "Run code review" }).click();
 
-    await expect(page.getByRole("heading", { name: "Findings" })).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: "Findings summary" })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/CRITICAL|HIGH|MEDIUM/).first()).toBeVisible();
-    await expect(page.getByText("Fix Recommendation").first()).toBeVisible();
+    await expect(page.getByText("Recommendations").first()).toBeVisible();
   });
 
   test("computes and displays project health scores", async ({ page }) => {
     await ingestSampleRepository(page);
 
-    await page.getByText("Health Score").first().click();
-    await expect(page.getByText("Overall Health Score")).toBeVisible();
-    await expect(page.getByText("Grade ").first()).toBeVisible();
+    await page.getByText("Health").first().click();
+    await page.getByRole("button", { name: "Check health" }).first().click();
+
+    await expect(page.getByText("Score breakdown")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/Good|Fair|Needs attention/).first()).toBeVisible();
   });
 
   test("runs a security scan and surfaces remediation items", async ({ page }) => {
     await ingestSampleRepository(page);
 
-    await page.getByText("Health Score").first().click();
-    await page.getByRole("button", { name: /Run Security Scan/ }).click();
+    await page.getByText("Security").first().click();
+    await page.getByRole("button", { name: "Run security audit" }).click();
 
-    await expect(page.getByText("Action Items")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText("Findings summary")).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/CRITICAL|HIGH|MEDIUM/).first()).toBeVisible();
+    await expect(page.getByText("Recommendations").first()).toBeVisible();
   });
 });
