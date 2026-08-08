@@ -14,7 +14,7 @@ def test_answer_grounded_when_context_exists():
     llm.generate.return_value = "It uses math.py to add numbers."
     skill = RAGSkill(vector, MagicMock(), llm)
 
-    answer, provenance, mode = skill.answer("How is addition done?")
+    _answer, provenance, mode = skill.answer("How is addition done?")
 
     assert mode == "grounded"
     assert provenance == ["src/math.py"]
@@ -30,7 +30,7 @@ def test_answer_open_when_no_context():
     llm.generate.return_value = "Here is a general explanation of how HTTP works."
     skill = RAGSkill(vector, MagicMock(), llm)
 
-    answer, provenance, mode = skill.answer("Explain HTTP status codes")
+    _answer, provenance, mode = skill.answer("Explain HTTP status codes")
 
     assert mode == "open"
     assert provenance == []

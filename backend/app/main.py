@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting %s", settings.app_name)
     try:
         init_db()
-    except Exception as exc:  # noqa: BLE001  # never crash startup on storage issues
+    except Exception as exc:  # never crash startup on storage issues
         logger.warning("Database initialization skipped: %s", exc)
     yield
 

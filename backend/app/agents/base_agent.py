@@ -37,5 +37,5 @@ class BaseAgent(ABC):
             if result.returncode != 0:
                 return None
             return [line for line in result.stdout.splitlines() if line.strip()]
-        except Exception:  # noqa: BLE001  # non-git or broken checkout falls back to full scan
+        except Exception:  # non-git or broken checkout falls back to full scan
             return None

@@ -84,7 +84,7 @@ class DocumentationService:
                 content = self.llm.generate(prompt, timeout=60.0, max_tokens=1500)
             if content and not content.startswith("LLM request failed"):
                 return content
-        except Exception as exc:  # noqa: BLE001  # graceful fallback per constitution
+        except Exception as exc:  # graceful fallback per constitution
             logger.warning("Documentation generation via LLM failed (%s); using template", exc)
         template = _TEMPLATES.get(doc_type, _TEMPLATES["readme"])
         return template.format(title=title, summary=summary)

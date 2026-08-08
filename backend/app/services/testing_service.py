@@ -63,6 +63,6 @@ class TestingService:
                 content = self.llm.generate(prompt)
             if content and not content.startswith("LLM request failed"):
                 return content
-        except Exception as exc:  # noqa: BLE001  # graceful fallback per constitution
+        except Exception as exc:  # graceful fallback per constitution
             logger.warning("Test generation via LLM failed (%s); using template", exc)
         return TEMPLATES.get(test_type, TEMPLATES["unit"])

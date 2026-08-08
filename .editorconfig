@@ -1,0 +1,23 @@
+# Editor / formatter consistency for the DevPilot AI monorepo.
+# Ruff (backend) and Prettier-style tooling read line-length from here.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{py,ts,tsx,js,jsx,cjs}]
+indent_style = space
+indent_size = 4
+
+[*.py]
+max_line_length = 120
+
+[*.{ts,tsx,js,jsx,cjs,json,yml,yaml,md}]
+max_line_length = 100
+
+[*.{yml,yaml,json,md}]
+indent_style = space
+indent_size = 2

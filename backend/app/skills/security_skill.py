@@ -65,11 +65,11 @@ def _read_lines(path: Path) -> list[str]:
                 elif isinstance(source, str):
                     text += source
             return text.splitlines()
-        except Exception:  # noqa: S110  # malformed notebooks are skipped
+        except Exception:  # malformed notebooks are skipped
             return []
     try:
         return path.read_text(encoding="utf-8", errors="ignore").splitlines()
-    except Exception:  # noqa: S110  # unreadable files are skipped
+    except Exception:  # unreadable files are skipped
         return []
 
 

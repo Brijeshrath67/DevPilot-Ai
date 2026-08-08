@@ -99,7 +99,7 @@ try:  # pragma: no cover - optional dependency
     from pinecone import Pinecone
 
     _PINECONE_AVAILABLE = True
-except Exception:  # noqa: BLE001  # any package failure must degrade gracefully
+except Exception:  # any package failure must degrade gracefully
     _PINECONE_AVAILABLE = False
 
 
@@ -153,7 +153,7 @@ class VectorService:
                     )
                 self._pinecone = client.Index(settings.pinecone_index_name)
                 logger.info("Connected to Pinecone index '%s'", settings.pinecone_index_name)
-            except Exception as exc:  # noqa: BLE001  # graceful fallback
+            except Exception as exc:  # graceful fallback
                 logger.warning("Pinecone unavailable (%s); using local vector index", exc)
                 self._pinecone = None
         return self._pinecone
@@ -175,7 +175,7 @@ class VectorService:
                 ]
                 pinecone.upsert(vectors=vectors)
                 return
-            except Exception as exc:  # noqa: BLE001  # graceful fallback
+            except Exception as exc:  # graceful fallback
                 logger.warning("Pinecone upsert failed (%s); writing to local index", exc)
 
         ids_to_add = {item["id"] for item in items}
@@ -209,7 +209,7 @@ class VectorService:
                         }
                     )
                 return results
-            except Exception as exc:  # noqa: BLE001  # graceful fallback
+            except Exception as exc:  # graceful fallback
                 logger.warning("Pinecone query failed (%s); querying local index", exc)
 
         if not self.data:

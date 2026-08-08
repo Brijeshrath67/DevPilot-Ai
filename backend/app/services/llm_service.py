@@ -33,6 +33,6 @@ class LLMService:
             response.raise_for_status()
             data = response.json()
             return data["choices"][0]["message"]["content"].strip()
-        except Exception as exc:  # noqa: BLE001  # graceful fallback per constitution
+        except Exception as exc:  # graceful fallback per constitution
             logger.warning("LLM request to %s failed (%s); falling back to local rules.", self.provider, exc)
             return f"LLM request failed ({exc}). Falling back to local rules."
