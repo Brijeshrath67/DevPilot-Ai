@@ -80,6 +80,28 @@ Windows (PowerShell):
 - Backend: http://localhost:8000 (OpenAPI docs at `/docs`)
 - Frontend: http://localhost:5173
 
+### 2b. One-shot build & run (recommended)
+
+`scripts/build.sh` goes through the **entire codebase** — prerequisites, setup,
+build, lint, all test suites, demo seed, then starts the stack:
+
+```bash
+./scripts/build.sh                 # full pipeline: setup -> build -> check -> test -> seed -> run
+./scripts/build.sh --no-run        # same, but do not start servers
+./scripts/build.sh --setup         # install deps only (venv + pip + npm)
+./scripts/build.sh --build         # verify backend imports + compile frontend dist
+./scripts/build.sh --check         # ruff + eslint + tsc
+./scripts/build.sh --test          # pytest + vitest
+./scripts/build.sh --e2e           # Playwright end-to-end
+./scripts/build.sh --seed          # seed the sample repository
+./scripts/build.sh --run           # start backend + frontend only
+./scripts/build.sh --skip-e2e      # everything except end-to-end tests
+./scripts/build.sh --help
+```
+
+Windows equivalent: `.\scripts\build.ps1` with the same switches (`-Setup`,
+`-Build`, `-Check`, `-Test`, `-E2E`, `-Seed`, `-Run`, `-SkipE2E`, `-NoRun`).
+
 ### 3. Seed demo data
 
 ```bash
